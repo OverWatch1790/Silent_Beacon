@@ -1,11 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Silent Beacon Test</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Silent Beacon</title>
+  <style>
+    body {
+      background-color: black;
+      color: #00ff00;
+      font-family: "Courier New", monospace;
+      text-align: center;
+      margin: 0;
+      padding: 0;
+    }
+    .matrix {
+      animation: matrix 2s infinite;
+    }
+    @keyframes matrix {
+      0% { text-shadow: 0 0 5px #00ff00; }
+      50% { text-shadow: 0 0 20px #00ff00; }
+      100% { text-shadow: 0 0 5px #00ff00; }
+    }
+    a {
+      color: #00ff00;
+      text-decoration: none;
+      font-size: 1.5em;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .center {
+      margin-top: 20%;
+    }
+  </style>
 </head>
 <body>
-  <h1>Silent Beacon is live!</h1>
-  <p>If you can see this page, GitHub Pages is working.</p>
+  <div class="center">
+    <h1 class="matrix">SILENT BEACON</h1>
+    <p><a href="comms.html">Enter Secure Comms</a></p>
+  </div>
 </body>
 </html>
