@@ -1,263 +1,204 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Silent Beacon - Secure Communications Portal</title>
+  <meta charset="UTF-8" />
+  <title>Silent Beacon – Secure Communications</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      background: black;
-      color: #0f0;
-      font-family: 'Courier New', monospace;
-    }
+    :root { --g:#0f0; }
+    html,body{height:100%}
+    body{margin:0;background:#000;color:var(--g);font-family:"Courier New",monospace;overflow:hidden}
+    /* Matrix bg */
+    #matrix{position:fixed;inset:0;z-index:-1}
 
-    /* Matrix canvas background */
-    canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      z-index: -1;
-    }
+    .container{display:flex;flex-direction:column;align-items:center;margin-top:15vh;text-align:center;text-shadow:0 0 10px var(--g),0 0 20px var(--g);padding:0 16px}
+    h1{margin:0 0 20px;font-size:2.2rem}
 
-    .container {
-      text-align: center;
-      margin-top: 15vh;
-      color: #0f0;
-      text-shadow: 0 0 10px #0f0, 0 0 20px #0f0;
-      padding: 0 16px;
+    .btn{
+      border:2px solid var(--g); background:transparent; color:var(--g);
+      padding:14px 30px; letter-spacing:2px; text-transform:uppercase; cursor:pointer;
+      box-shadow:0 0 10px var(--g), inset 0 0 5px var(--g); transition:.25s transform,.25s box-shadow,.25s background;
     }
+    .btn:hover{transform:scale(1.05);background:rgba(0,255,0,.18);box-shadow:0 0 20px var(--g), inset 0 0 10px var(--g)}
 
-    h1 {
-      font-size: 2.5em;
-      margin-bottom: 28px;
+    /* Slide-in secure panel */
+    .panel{
+      width:min(780px,92vw); margin-top:18px; border:2px solid var(--g);
+      background:rgba(0,0,0,.55); box-shadow:0 0 20px rgba(0,255,0,.25), inset 0 0 10px rgba(0,255,0,.15);
+      text-align:left; overflow:hidden; max-height:0; opacity:0; transition:max-height .45s ease, opacity .45s ease;
     }
+    .panel.show{max-height:1000px; opacity:1}
 
-    .btn {
-      display: inline-block;
-      padding: 15px 30px;
-      margin: 12px;
-      font-size: 1.05em;
-      border: 2px solid #0f0;
-      color: #0f0;
-      background: transparent;
-      cursor: pointer;
-      transition: all 0.25s ease;
-      text-decoration: none;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      box-shadow: 0 0 10px #0f0, inset 0 0 5px #0f0;
+    .panel-inner{padding:18px}
+    .row{margin-bottom:12px}
+    label{display:block;margin-bottom:6px;letter-spacing:1px}
+    input,textarea{
+      width:100%; box-sizing:border-box; background:rgba(0,0,0,.82); border:1px solid var(--g); color:var(--g);
+      padding:10px 12px; font-family:inherit; outline:none; box-shadow:inset 0 0 6px rgba(0,255,0,.15)
     }
-    .btn:hover {
-      background: rgba(0, 255, 0, 0.2);
-      box-shadow: 0 0 20px #0f0, inset 0 0 10px #0f0;
-      transform: scale(1.05);
-    }
+    textarea{min-height:140px; resize:vertical}
+    .small{font-size:.9em;opacity:.85;letter-spacing:1px}
+    .muted{opacity:.7}
+    .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .inline-btn{border:1px solid var(--g);background:transparent;color:var(--g);padding:8px 12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer}
+    .inline-btn:hover{background:rgba(0,255,0,.15)}
 
-    /* Panels & form keep the same vibe */
-    .panel {
-      display: none;
-      max-width: 720px;
-      margin: 18px auto 0;
-      padding: 18px 18px 14px;
-      border: 2px solid #0f0;
-      background: rgba(0,0,0,0.55);
-      box-shadow: 0 0 20px rgba(0,255,0,0.25), inset 0 0 10px rgba(0,255,0,0.15);
-      text-align: left;
+    /* Transmission toast */
+    .toast{
+      position:fixed; left:50%; top:18%; transform:translate(-50%,-50%);
+      pointer-events:none; opacity:0; transition:opacity .25s ease;
+      font-weight:bold; font-size:1.2rem; letter-spacing:2px;
+      text-shadow:0 0 6px var(--g),0 0 14px var(--g);
     }
-    .panel.show { display: block; }
+    .toast.show{opacity:1; animation:blink 1.6s steps(4) 1}
+    @keyframes blink { 50%{opacity:.35} }
 
-    .row { margin-bottom: 12px; }
-    label { display: block; margin-bottom: 6px; letter-spacing: 1px; }
-    input, textarea {
-      width: 100%;
-      box-sizing: border-box;
-      background: rgba(0,0,0,0.8);
-      border: 1px solid #0f0;
-      color: #0f0;
-      padding: 10px 12px;
-      font-family: inherit;
-      outline: none;
-      box-shadow: inset 0 0 6px rgba(0,255,0,0.15);
-    }
-    textarea { min-height: 140px; resize: vertical; }
-
-    .actions {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      flex-wrap: wrap;
-    }
-    .small {
-      font-size: 0.9em;
-      opacity: 0.85;
-      letter-spacing: 1px;
-    }
-    .muted { opacity: 0.7; }
-
-    .ok    { color: #9f9; }
-    .warn  { color: #ff9; }
-    .err   { color: #f99; }
-
-    .inline-btn {
-      border: 1px solid #0f0;
-      background: transparent;
-      color: #0f0;
-      padding: 6px 10px;
-      cursor: pointer;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-    .inline-btn:hover { background: rgba(0,255,0,0.15); }
+    /* dissolve */
+    .dissolve{animation:dissolve .65s ease forwards}
+    @keyframes dissolve { to { opacity:0; filter:blur(6px); transform:scale(.985) } }
   </style>
 </head>
 <body>
   <canvas id="matrix"></canvas>
 
   <div class="container">
-    <h1>Silent Beacon – Secure Communications Portal</h1>
+    <h1>Silent Beacon – Secure Communications</h1>
+    <button id="openSecure" class="btn">Secure</button>
 
-    <!-- Buttons -->
-    <button class="btn" id="btn-top">Top Secrete</button>
-    <button class="btn" id="btn-sec">Secure</button>
-    <button class="btn" id="btn-unsec">Unsecure Email</button>
+    <div id="securePanel" class="panel" aria-hidden="true">
+      <div class="panel-inner">
+        <form id="secureForm" action="https://formspree.io/f/mpwlnnel" method="POST" autocomplete="off">
+          <div class="row">
+            <label for="sb-callsign">Callsign <span class="small muted">(required)</span></label>
+            <input id="sb-callsign" name="name" required />
+          </div>
 
-    <!-- Top Secrete (Proton↔Proton) -->
-    <div class="panel" id="panel-top">
-      <div class="row">
-        <p class="small">
-          <span class="ok">Top Secrete:</span> Proton ↔ Proton preferred. Compose directly to:
-        </p>
-        <p class="row" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-          <a id="mailtoLink" href="mailto:silentbeacon@proton.me" class="inline-btn">Open Proton</a>
-          <span id="addr" class="small">silentbeacon@proton.me</span>
-          <button id="copyAddr" class="inline-btn">Copy</button>
-        </p>
-        <p class="small muted">If you use Proton Mail, messages are end-to-end encrypted by default.</p>
+          <div class="row">
+            <label for="sb-email">Reply email <span class="small muted">(optional)</span></label>
+            <input id="sb-email" type="email" name="_replyto" placeholder="For full E2E, use ProtonMail (optional)" />
+          </div>
+
+          <div class="row">
+            <label for="sb-message">Message <span class="small muted">(required)</span></label>
+            <textarea id="sb-message" name="message" required></textarea>
+          </div>
+
+          <!-- anti-bot -->
+          <input type="text" name="_gotcha" style="display:none">
+          <input type="hidden" name="ts" id="sb-ts">
+
+          <div class="actions">
+            <button type="submit" class="inline-btn">Send Secure</button>
+            <span id="sb-status" class="small muted"></span>
+          </div>
+        </form>
       </div>
-    </div>
-
-    <!-- Secure (placeholder for future, keeps theme consistent) -->
-    <div class="panel" id="panel-sec">
-      <p class="small">
-        <span class="warn">Secure (WIP):</span> For now, use <strong>Top Secrete</strong> Proton↔Proton above.
-        We can later wire a Cloudflare Worker + PGP for non-Proton senders.
-      </p>
-    </div>
-
-    <!-- Unsecure Email (Formspree) -->
-    <div class="panel" id="panel-unsec">
-      <form id="fs-form" action="https://formspree.io/f/mpwlnnel" method="POST">
-        <div class="row">
-          <label for="fs-name">Callsign</label>
-          <input id="fs-name" name="name" required>
-        </div>
-        <div class="row">
-          <label for="fs-reply">Reply email</label>
-          <input id="fs-reply" type="email" name="_replyto" required>
-        </div>
-        <div class="row">
-          <label for="fs-msg">Message</label>
-          <textarea id="fs-msg" name="message" required></textarea>
-        </div>
-
-        <!-- honeypot anti-spam -->
-        <input type="text" name="_gotcha" style="display:none">
-
-        <div class="actions">
-          <button type="submit" class="inline-btn">Send Unsecure</button>
-          <span class="small muted">Route: Formspree → Proton inbox (no E2E encryption).</span>
-        </div>
-      </form>
-      <div id="fs-status" class="small" style="margin-top:10px;"></div>
     </div>
   </div>
 
+  <div id="toast" class="toast">TRANSMISSION SENT</div>
+
+  <!-- Proton PUBLIC key (your real key embedded) -->
+  <script id="sb-pubkey" type="application/pgp-keys">
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+xjMEZKBTyBYJKwYBBAHaRw8BAQdAVnqbCVaw5PyjOnOkJolNcZIG8U/LaQRC
+t2PQBBH3P/fNMU92ZXJXYXRjaDE3OTBAcHJvdG9uLm1lIDxPdmVyV2F0Y2gx
+NzkwQHByb3Rvbi5tZT7CjAQQFgoAPgWCZKBTyAQLCQcICZBm/yLWGD5NWwMV
+CAoEFgACAQIZAQKbAwIeARYhBDoIkVCKSMHFEf3rHmb/ItYYPk1bAABpggEA
+9CWvaM0t2Jf5OZr+eTm5QEgBCRj+SdP43rSA8ZoI4bgBANPcCr+8TFU86dtt
+lF8Lag4Ivxw6SG8+lADyIkw1XsMPzjgEZKBTyBIKKwYBBAGXVQEFAQEHQI9N
+25+McxGwawd57BEcA/H8vdtHEQtOJA4WWc6kd9NUAwEIB8J4BBgWCAAqBYJk
+oFPICZBm/yLWGD5NWwKbDBYhBDoIkVCKSMHFEf3rHmb/ItYYPk1bAAA3wQEA
+ulQ5Hh0rfIwhUk6jg/ngwFls70af1syyHZN8MNVRJRsA/jzWdlbt0uMVDqgj
+pcXFYA7QTSj2EvumxD3cuKHVQ80N
+=i34q
+-----END PGP PUBLIC KEY BLOCK-----
+  </script>
+
+  <!-- OpenPGP.js -->
+  <script src="https://unpkg.com/openpgp@5/dist/openpgp.min.js"></script>
+
   <script>
-    // Matrix effect (kept original look, added resize handling)
-    const canvas = document.getElementById('matrix');
-    const ctx = canvas.getContext('2d');
+    // Matrix background (resizable)
+    const cvs = document.getElementById('matrix'), ctx = cvs.getContext('2d');
+    let letters='01', fontSize=14, cols=0, drops=[];
+    function size(){ cvs.width = innerWidth; cvs.height = innerHeight; cols = Math.ceil(cvs.width/fontSize); drops = Array.from({length:cols}, ()=>1); }
+    size(); addEventListener('resize', size);
+    setInterval(()=>{ ctx.fillStyle='rgba(0,0,0,.05)'; ctx.fillRect(0,0,cvs.width,cvs.height);
+      ctx.fillStyle='#0f0'; ctx.font=fontSize+'px monospace';
+      for(let i=0;i<drops.length;i++){ const t=letters[Math.random()*letters.length|0]; ctx.fillText(t,i*fontSize,drops[i]*fontSize);
+        if(drops[i]*fontSize>cvs.height && Math.random()>0.975) drops[i]=0; drops[i]++; }},33);
 
-    function sizeCanvas(){
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      columns = Math.ceil(canvas.width / fontSize);
-      drops = Array.from({length: columns}, () => 1);
+    // UI show/hide
+    const openBtn = document.getElementById('openSecure');
+    const panel = document.getElementById('securePanel');
+    openBtn.addEventListener('click', ()=>{ panel.classList.add('show'); panel.setAttribute('aria-hidden','false'); });
+
+    // Pre-fill anti-bot ts
+    document.getElementById('sb-ts').value = Date.now();
+
+    async function encryptForSB(plain){
+      const armored = document.getElementById('sb-pubkey').textContent.trim();
+      const pubKey  = await openpgp.readKey({armoredKey: armored});
+      const message = await openpgp.createMessage({ text: plain });
+      return await openpgp.encrypt({ message, encryptionKeys: pubKey });
     }
 
-    let letters = '01';
-    let fontSize = 14;
-    let columns = 0;
-    let drops = [];
+    // Submit handler
+    const form   = document.getElementById('secureForm');
+    const status = document.getElementById('sb-status');
+    const toast  = document.getElementById('toast');
 
-    sizeCanvas();
-    window.addEventListener('resize', sizeCanvas);
-
-    function drawMatrix() {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      ctx.fillStyle = '#0f0';
-      ctx.font = fontSize + 'px monospace';
-
-      for (let i = 0; i < drops.length; i++) {
-        const text = letters[Math.floor(Math.random() * letters.length)];
-        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-          drops[i] = 0;
-        }
-
-        drops[i]++;
-      }
-    }
-    setInterval(drawMatrix, 33);
-
-    // Panels toggle
-    const panelTop   = document.getElementById('panel-top');
-    const panelSec   = document.getElementById('panel-sec');
-    const panelUnsec = document.getElementById('panel-unsec');
-
-    function showPanel(which){
-      [panelTop, panelSec, panelUnsec].forEach(p => p.classList.remove('show'));
-      if (which) which.classList.add('show');
-    }
-
-    document.getElementById('btn-top').addEventListener('click', () => showPanel(panelTop));
-    document.getElementById('btn-sec').addEventListener('click', () => showPanel(panelSec));
-    document.getElementById('btn-unsec').addEventListener('click', () => showPanel(panelUnsec));
-
-    // Copy Proton address
-    document.getElementById('copyAddr').addEventListener('click', async () => {
-      const addrEl = document.getElementById('addr');
-      try {
-        await navigator.clipboard.writeText(addrEl.textContent.trim());
-        addrEl.textContent = addrEl.textContent.trim() + '  ✓ copied';
-        setTimeout(() => { addrEl.textContent = addrEl.textContent.replace('  ✓ copied',''); }, 1500);
-      } catch(e) {}
-    });
-
-    // Formspree submit (AJAX)
-    const fsForm = document.getElementById('fs-form');
-    const fsStatus = document.getElementById('fs-status');
-
-    fsForm.addEventListener('submit', async (e) => {
+    form.addEventListener('submit', async (e)=>{
       e.preventDefault();
-      fsStatus.textContent = 'Sending…';
+      status.textContent = 'Encrypting…';
+
+      // Gather fields
+      const callsign = document.getElementById('sb-callsign').value.trim();
+      const reply    = document.getElementById('sb-email').value.trim();
+      const message  = document.getElementById('sb-message').value.trim();
+
+      // Build plaintext to encrypt (include reply email inside ciphertext too)
+      const plain =
+`Callsign: ${callsign || '(none)'}
+Reply (optional): ${reply || '(none)'}
+---
+${message}`;
+
+      let cipher;
       try {
-        const r = await fetch(fsForm.action, {
-          method: 'POST',
-          headers: { 'Accept': 'application/json' },
-          body: new FormData(fsForm)
-        });
-        if (r.ok) {
-          fsStatus.innerHTML = '<span class="ok">✅ Message sent. I’ll reply from Proton.</span>';
-          fsForm.reset();
-        } else {
-          fsStatus.innerHTML = '<span class="err">⚠️ Error sending. Please try again later.</span>';
+        cipher = await encryptForSB(plain);
+      } catch(err){
+        status.textContent = 'Encryption failed.';
+        return;
+      }
+
+      status.textContent = 'Transmitting…';
+
+      // Build FormData: replace message with ciphertext
+      const fd = new FormData(form);
+      fd.set('message', cipher);
+
+      try{
+        const res = await fetch(form.action, { method:'POST', headers:{'Accept':'application/json'}, body: fd });
+        if(res.ok){
+          // success → matrix toast + dissolve + reset
+          toast.classList.add('show');
+          panel.classList.add('dissolve');
+          setTimeout(()=>{ toast.classList.remove('show'); }, 1600);
+          setTimeout(()=>{
+            form.reset();
+            panel.classList.remove('show','dissolve');
+            panel.setAttribute('aria-hidden','true');
+            status.textContent = '';
+            document.getElementById('sb-ts').value = Date.now();
+          }, 2100);
+        }else{
+          status.textContent = 'Send failed. Try again.';
         }
-      } catch (err) {
-        fsStatus.innerHTML = '<span class="err">⚠️ Network error. Please try again.</span>';
+      }catch(err){
+        status.textContent = 'Network error. Try again.';
       }
     });
   </script>
