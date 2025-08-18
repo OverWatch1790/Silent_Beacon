@@ -25,63 +25,175 @@
       margin-top: 15vh;
       color: #0f0;
       text-shadow: 0 0 10px #0f0, 0 0 20px #0f0;
+      padding: 0 16px;
     }
 
     h1 {
       font-size: 2.5em;
-      margin-bottom: 40px;
+      margin-bottom: 28px;
     }
 
     .btn {
       display: inline-block;
       padding: 15px 30px;
-      margin: 15px;
-      font-size: 1.2em;
+      margin: 12px;
+      font-size: 1.05em;
       border: 2px solid #0f0;
       color: #0f0;
       background: transparent;
       cursor: pointer;
-      transition: all 0.3s ease;
+      transition: all 0.25s ease;
       text-decoration: none;
       text-transform: uppercase;
       letter-spacing: 2px;
       box-shadow: 0 0 10px #0f0, inset 0 0 5px #0f0;
     }
-
     .btn:hover {
       background: rgba(0, 255, 0, 0.2);
       box-shadow: 0 0 20px #0f0, inset 0 0 10px #0f0;
       transform: scale(1.05);
     }
+
+    /* Panels & form keep the same vibe */
+    .panel {
+      display: none;
+      max-width: 720px;
+      margin: 18px auto 0;
+      padding: 18px 18px 14px;
+      border: 2px solid #0f0;
+      background: rgba(0,0,0,0.55);
+      box-shadow: 0 0 20px rgba(0,255,0,0.25), inset 0 0 10px rgba(0,255,0,0.15);
+      text-align: left;
+    }
+    .panel.show { display: block; }
+
+    .row { margin-bottom: 12px; }
+    label { display: block; margin-bottom: 6px; letter-spacing: 1px; }
+    input, textarea {
+      width: 100%;
+      box-sizing: border-box;
+      background: rgba(0,0,0,0.8);
+      border: 1px solid #0f0;
+      color: #0f0;
+      padding: 10px 12px;
+      font-family: inherit;
+      outline: none;
+      box-shadow: inset 0 0 6px rgba(0,255,0,0.15);
+    }
+    textarea { min-height: 140px; resize: vertical; }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .small {
+      font-size: 0.9em;
+      opacity: 0.85;
+      letter-spacing: 1px;
+    }
+    .muted { opacity: 0.7; }
+
+    .ok    { color: #9f9; }
+    .warn  { color: #ff9; }
+    .err   { color: #f99; }
+
+    .inline-btn {
+      border: 1px solid #0f0;
+      background: transparent;
+      color: #0f0;
+      padding: 6px 10px;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .inline-btn:hover { background: rgba(0,255,0,0.15); }
   </style>
 </head>
 <body>
   <canvas id="matrix"></canvas>
+
   <div class="container">
     <h1>Silent Beacon – Secure Communications Portal</h1>
-    <a href="#" class="btn">Secure Email</a>
-    <a href="#" class="btn">Unsecure Email</a>
-    <a href="#" class="btn">Unsecure Chat</a>
+
+    <!-- Buttons -->
+    <button class="btn" id="btn-top">Top Secrete</button>
+    <button class="btn" id="btn-sec">Secure</button>
+    <button class="btn" id="btn-unsec">Unsecure Email</button>
+
+    <!-- Top Secrete (Proton↔Proton) -->
+    <div class="panel" id="panel-top">
+      <div class="row">
+        <p class="small">
+          <span class="ok">Top Secrete:</span> Proton ↔ Proton preferred. Compose directly to:
+        </p>
+        <p class="row" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <a id="mailtoLink" href="mailto:silentbeacon@proton.me" class="inline-btn">Open Proton</a>
+          <span id="addr" class="small">silentbeacon@proton.me</span>
+          <button id="copyAddr" class="inline-btn">Copy</button>
+        </p>
+        <p class="small muted">If you use Proton Mail, messages are end-to-end encrypted by default.</p>
+      </div>
+    </div>
+
+    <!-- Secure (placeholder for future, keeps theme consistent) -->
+    <div class="panel" id="panel-sec">
+      <p class="small">
+        <span class="warn">Secure (WIP):</span> For now, use <strong>Top Secrete</strong> Proton↔Proton above.
+        We can later wire a Cloudflare Worker + PGP for non-Proton senders.
+      </p>
+    </div>
+
+    <!-- Unsecure Email (Formspree) -->
+    <div class="panel" id="panel-unsec">
+      <form id="fs-form" action="https://formspree.io/f/mpwlnnel" method="POST">
+        <div class="row">
+          <label for="fs-name">Callsign</label>
+          <input id="fs-name" name="name" required>
+        </div>
+        <div class="row">
+          <label for="fs-reply">Reply email</label>
+          <input id="fs-reply" type="email" name="_replyto" required>
+        </div>
+        <div class="row">
+          <label for="fs-msg">Message</label>
+          <textarea id="fs-msg" name="message" required></textarea>
+        </div>
+
+        <!-- honeypot anti-spam -->
+        <input type="text" name="_gotcha" style="display:none">
+
+        <div class="actions">
+          <button type="submit" class="inline-btn">Send Unsecure</button>
+          <span class="small muted">Route: Formspree → Proton inbox (no E2E encryption).</span>
+        </div>
+      </form>
+      <div id="fs-status" class="small" style="margin-top:10px;"></div>
+    </div>
   </div>
 
   <script>
-    // Matrix effect
+    // Matrix effect (kept original look, added resize handling)
     const canvas = document.getElementById('matrix');
     const ctx = canvas.getContext('2d');
 
-    canvas.height = window.innerHeight;
-    canvas.width = window.innerWidth;
-
-    const letters = '01';
-    const fontSize = 14;
-    const columns = canvas.width / fontSize;
-
-    const drops = [];
-    for (let x = 0; x < columns; x++) {
-      drops[x] = 1;
+    function sizeCanvas(){
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      columns = Math.ceil(canvas.width / fontSize);
+      drops = Array.from({length: columns}, () => 1);
     }
 
-    function draw() {
+    let letters = '01';
+    let fontSize = 14;
+    let columns = 0;
+    let drops = [];
+
+    sizeCanvas();
+    window.addEventListener('resize', sizeCanvas);
+
+    function drawMatrix() {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
@@ -99,8 +211,55 @@
         drops[i]++;
       }
     }
+    setInterval(drawMatrix, 33);
 
-    setInterval(draw, 33);
+    // Panels toggle
+    const panelTop   = document.getElementById('panel-top');
+    const panelSec   = document.getElementById('panel-sec');
+    const panelUnsec = document.getElementById('panel-unsec');
+
+    function showPanel(which){
+      [panelTop, panelSec, panelUnsec].forEach(p => p.classList.remove('show'));
+      if (which) which.classList.add('show');
+    }
+
+    document.getElementById('btn-top').addEventListener('click', () => showPanel(panelTop));
+    document.getElementById('btn-sec').addEventListener('click', () => showPanel(panelSec));
+    document.getElementById('btn-unsec').addEventListener('click', () => showPanel(panelUnsec));
+
+    // Copy Proton address
+    document.getElementById('copyAddr').addEventListener('click', async () => {
+      const addrEl = document.getElementById('addr');
+      try {
+        await navigator.clipboard.writeText(addrEl.textContent.trim());
+        addrEl.textContent = addrEl.textContent.trim() + '  ✓ copied';
+        setTimeout(() => { addrEl.textContent = addrEl.textContent.replace('  ✓ copied',''); }, 1500);
+      } catch(e) {}
+    });
+
+    // Formspree submit (AJAX)
+    const fsForm = document.getElementById('fs-form');
+    const fsStatus = document.getElementById('fs-status');
+
+    fsForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      fsStatus.textContent = 'Sending…';
+      try {
+        const r = await fetch(fsForm.action, {
+          method: 'POST',
+          headers: { 'Accept': 'application/json' },
+          body: new FormData(fsForm)
+        });
+        if (r.ok) {
+          fsStatus.innerHTML = '<span class="ok">✅ Message sent. I’ll reply from Proton.</span>';
+          fsForm.reset();
+        } else {
+          fsStatus.innerHTML = '<span class="err">⚠️ Error sending. Please try again later.</span>';
+        }
+      } catch (err) {
+        fsStatus.innerHTML = '<span class="err">⚠️ Network error. Please try again.</span>';
+      }
+    });
   </script>
 </body>
 </html>
