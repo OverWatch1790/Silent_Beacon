@@ -11,15 +11,25 @@
     /* Matrix bg */
     #matrix{position:fixed;inset:0;z-index:-1}
 
-    .container{display:flex;flex-direction:column;align-items:center;margin-top:15vh;text-align:center;text-shadow:0 0 10px var(--g),0 0 20px var(--g);padding:0 16px}
-    h1{margin:0 0 20px;font-size:2.2rem}
+    .container{
+      display:flex;flex-direction:column;align-items:center;
+      margin-top:12vh;text-align:center;
+      text-shadow:0 0 10px var(--g),0 0 20px var(--g);
+      padding:0 16px
+    }
+    h1{margin:0 0 10px;font-size:2.3rem}
 
+    /* BIG Secure button */
     .btn{
       border:2px solid var(--g); background:transparent; color:var(--g);
-      padding:14px 30px; letter-spacing:2px; text-transform:uppercase; cursor:pointer;
-      box-shadow:0 0 10px var(--g), inset 0 0 5px var(--g); transition:.25s transform,.25s box-shadow,.25s background;
+      padding:20px 44px; letter-spacing:2px; text-transform:uppercase; cursor:pointer;
+      box-shadow:0 0 14px var(--g), inset 0 0 7px var(--g);
+      transition:.25s transform,.25s box-shadow,.25s background, .25s filter;
+      font-size:1.25rem;
+      margin-top:10vh;            /* pushes button further below title */
+      filter:drop-shadow(0 0 8px rgba(0,255,0,.35));
     }
-    .btn:hover{transform:scale(1.05);background:rgba(0,255,0,.18);box-shadow:0 0 20px var(--g), inset 0 0 10px var(--g)}
+    .btn:hover{transform:scale(1.06);background:rgba(0,255,0,.18);box-shadow:0 0 24px var(--g), inset 0 0 12px var(--g)}
 
     /* Slide-in secure panel */
     .panel{
@@ -34,27 +44,28 @@
     label{display:block;margin-bottom:6px;letter-spacing:1px}
     input,textarea{
       width:100%; box-sizing:border-box; background:rgba(0,0,0,.82); border:1px solid var(--g); color:var(--g);
-      padding:10px 12px; font-family:inherit; outline:none; box-shadow:inset 0 0 6px rgba(0,255,0,.15)
+      padding:10px 12px; font-family:inherit; outline:none; box-shadow:inset 0 0 6px rgba(0,255,0,0.15)
     }
     textarea{min-height:140px; resize:vertical}
     .small{font-size:.9em;opacity:.85;letter-spacing:1px}
     .muted{opacity:.7}
     .actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-    .inline-btn{border:1px solid var(--g);background:transparent;color:var(--g);padding:8px 12px;letter-spacing:1px;text-transform:uppercase;cursor:pointer}
-    .inline-btn:hover{background:rgba(0,255,0,.15)}
+    .inline-btn{border:1px solid var(--g);background:transparent;color:var(--g);padding:9px 14px;letter-spacing:1px;text-transform:uppercase;cursor:pointer}
+    .inline-btn[disabled]{opacity:.6;cursor:not-allowed}
+    .inline-btn:hover:not([disabled]){background:rgba(0,255,0,.15)}
 
     /* Transmission toast */
     .toast{
       position:fixed; left:50%; top:18%; transform:translate(-50%,-50%);
       pointer-events:none; opacity:0; transition:opacity .25s ease;
-      font-weight:bold; font-size:1.2rem; letter-spacing:2px;
+      font-weight:bold; font-size:1.15rem; letter-spacing:2px;
       text-shadow:0 0 6px var(--g),0 0 14px var(--g);
     }
     .toast.show{opacity:1; animation:blink 1.6s steps(4) 1}
     @keyframes blink { 50%{opacity:.35} }
 
     /* dissolve */
-    .dissolve{animation:dissolve .65s ease forwards}
+    .dissolve{animation:dissolve .7s ease forwards}
     @keyframes dissolve { to { opacity:0; filter:blur(6px); transform:scale(.985) } }
   </style>
 </head>
@@ -74,8 +85,8 @@
           </div>
 
           <div class="row">
-            <label for="sb-email">Reply email <span class="small muted">(optional)</span></label>
-            <input id="sb-email" type="email" name="_replyto" placeholder="For full E2E, use ProtonMail (optional)" />
+            <label for="sb-email">Reply email <span class="small muted">(optional – for full E2E, use Proton)</span></label>
+            <input id="sb-email" type="email" name="_replyto" placeholder="you@proton.me (recommended)" />
           </div>
 
           <div class="row">
@@ -88,8 +99,8 @@
           <input type="hidden" name="ts" id="sb-ts">
 
           <div class="actions">
-            <button type="submit" class="inline-btn">Send Secure</button>
-            <span id="sb-status" class="small muted"></span>
+            <button type="submit" id="sendBtn" class="inline-btn">Send Secure</button>
+            <span id="sb-status" class="small muted" role="status" aria-live="polite"></span>
           </div>
         </form>
       </div>
@@ -98,7 +109,7 @@
 
   <div id="toast" class="toast">TRANSMISSION SENT</div>
 
-  <!-- Proton PUBLIC key (your real key embedded) -->
+  <!-- Proton PUBLIC key -->
   <script id="sb-pubkey" type="application/pgp-keys">
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 
@@ -120,7 +131,7 @@ pcXFYA7QTSj2EvumxD3cuKHVQ80N
   <script src="https://unpkg.com/openpgp@5/dist/openpgp.min.js"></script>
 
   <script>
-    // Matrix background (resizable)
+    /* Matrix background */
     const cvs = document.getElementById('matrix'), ctx = cvs.getContext('2d');
     let letters='01', fontSize=14, cols=0, drops=[];
     function size(){ cvs.width = innerWidth; cvs.height = innerHeight; cols = Math.ceil(cvs.width/fontSize); drops = Array.from({length:cols}, ()=>1); }
@@ -130,13 +141,19 @@ pcXFYA7QTSj2EvumxD3cuKHVQ80N
       for(let i=0;i<drops.length;i++){ const t=letters[Math.random()*letters.length|0]; ctx.fillText(t,i*fontSize,drops[i]*fontSize);
         if(drops[i]*fontSize>cvs.height && Math.random()>0.975) drops[i]=0; drops[i]++; }},33);
 
-    // UI show/hide
+    /* UI show/hide */
     const openBtn = document.getElementById('openSecure');
     const panel = document.getElementById('securePanel');
-    openBtn.addEventListener('click', ()=>{ panel.classList.add('show'); panel.setAttribute('aria-hidden','false'); });
+    openBtn.addEventListener('click', ()=>{
+      panel.classList.add('show');
+      panel.setAttribute('aria-hidden','false');
+      document.getElementById('sb-callsign').focus();
+    });
 
-    // Pre-fill anti-bot ts
-    document.getElementById('sb-ts').value = Date.now();
+    /* Pre-fill anti-bot ts */
+    const tsInput = document.getElementById('sb-ts');
+    function resetTs(){ tsInput.value = Date.now(); }
+    resetTs();
 
     async function encryptForSB(plain){
       const armored = document.getElementById('sb-pubkey').textContent.trim();
@@ -145,21 +162,21 @@ pcXFYA7QTSj2EvumxD3cuKHVQ80N
       return await openpgp.encrypt({ message, encryptionKeys: pubKey });
     }
 
-    // Submit handler
+    /* Submit handler with attachment & confirmations */
     const form   = document.getElementById('secureForm');
     const status = document.getElementById('sb-status');
     const toast  = document.getElementById('toast');
+    const sendBtn= document.getElementById('sendBtn');
 
     form.addEventListener('submit', async (e)=>{
       e.preventDefault();
+      sendBtn.disabled = true;
       status.textContent = 'Encrypting…';
 
-      // Gather fields
       const callsign = document.getElementById('sb-callsign').value.trim();
       const reply    = document.getElementById('sb-email').value.trim();
       const message  = document.getElementById('sb-message').value.trim();
 
-      // Build plaintext to encrypt (include reply email inside ciphertext too)
       const plain =
 `Callsign: ${callsign || '(none)'}
 Reply (optional): ${reply || '(none)'}
@@ -171,34 +188,48 @@ ${message}`;
         cipher = await encryptForSB(plain);
       } catch(err){
         status.textContent = 'Encryption failed.';
+        sendBtn.disabled = false;
         return;
       }
 
       status.textContent = 'Transmitting…';
 
-      // Build FormData: replace message with ciphertext
-      const fd = new FormData(form);
-      fd.set('message', cipher);
+      /* Build payload: inline armored + attach secure.asc for Proton auto-decrypt */
+      const fd = new FormData();
+      fd.append('name', callsign || 'Anonymous');
+      if (reply) fd.append('_replyto', reply);
+      fd.append('_subject', `Secure Transmission from ${callsign || 'Anonymous'}`);
+      fd.append('message', `PGP armored message attached as secure.asc.\n\n${cipher}`);
+
+      const blob = new Blob([cipher], { type: 'text/plain' });
+      fd.append('file', blob, 'secure.asc');
 
       try{
         const res = await fetch(form.action, { method:'POST', headers:{'Accept':'application/json'}, body: fd });
         if(res.ok){
-          // success → matrix toast + dissolve + reset
+          status.textContent = '✓ Transmission sent';
           toast.classList.add('show');
-          panel.classList.add('dissolve');
-          setTimeout(()=>{ toast.classList.remove('show'); }, 1600);
+
+          /* Wait a moment so the user sees confirmation; THEN dissolve */
           setTimeout(()=>{
-            form.reset();
-            panel.classList.remove('show','dissolve');
-            panel.setAttribute('aria-hidden','true');
-            status.textContent = '';
-            document.getElementById('sb-ts').value = Date.now();
-          }, 2100);
+            toast.classList.remove('show');
+            panel.classList.add('dissolve');
+            setTimeout(()=>{
+              form.reset();
+              panel.classList.remove('show','dissolve');
+              panel.setAttribute('aria-hidden','true');
+              status.textContent = '';
+              sendBtn.disabled = false;
+              resetTs();
+            }, 800);  // finish dissolve
+          }, 1800);   // show toast duration
         }else{
           status.textContent = 'Send failed. Try again.';
+          sendBtn.disabled = false;
         }
       }catch(err){
         status.textContent = 'Network error. Try again.';
+        sendBtn.disabled = false;
       }
     });
   </script>
