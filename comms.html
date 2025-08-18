@@ -2,128 +2,47 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Silent Beacon – Secure Communications Portal</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Silent Beacon Comms</title>
   <style>
-    :root {
-      --green: #0f0;
-      --bg: #000;
-      --glow: 0 0 10px #0f0, 0 0 20px #0f0;
-    }
-    html, body {
-      margin: 0; padding: 0;
-      background: var(--bg); color: var(--green);
+    body {
+      background-color: black;
+      color: #00ff00;
       font-family: "Courier New", monospace;
-      height: 100%;
-      overflow: hidden;
-    }
-    /* Matrix background canvas */
-    #matrix {
-      position: fixed; inset: 0; z-index: -1;
-    }
-    .container {
       text-align: center;
-      margin-top: 22vh;         /* pushed further down per your request */
-      text-shadow: var(--glow);
-      padding: 0 1rem;
+      margin: 0;
+      padding: 0;
     }
-    h1 { margin: 0 0 14px; font-size: 2.4rem; }
-    .tag { opacity: .9; margin-bottom: 46px; }
-
-    /* BIG secure button */
-    .btn {
-      display: inline-block;
-      padding: 22px 48px;              /* bigger */
-      font-size: 1.35rem;              /* bigger */
-      border: 2px solid var(--green);
-      color: var(--green);
-      background: transparent;
+    textarea, input {
+      background-color: black;
+      color: #00ff00;
+      border: 1px solid #00ff00;
+      width: 80%;
+      padding: 10px;
+      margin: 10px 0;
+      font-family: "Courier New", monospace;
+    }
+    button {
+      background-color: black;
+      color: #00ff00;
+      border: 1px solid #00ff00;
+      padding: 10px 20px;
       cursor: pointer;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      box-shadow: 0 0 10px #0f0, inset 0 0 5px #0f0;
-      transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+      font-family: "Courier New", monospace;
     }
-    .btn:hover { transform: scale(1.04); box-shadow: 0 0 20px #0f0, inset 0 0 10px #0f0; }
-
-    /* Slide-up panel */
-    .panel {
-      position: fixed; left: 50%; bottom: -100%;
-      transform: translateX(-50%);
-      width: min(780px, 92vw);
-      background: rgba(0,0,0,.85);
-      border: 1px solid var(--green);
-      border-radius: 10px;
-      box-shadow: 0 0 18px rgba(0,255,0,.5);
-      padding: 18px 18px 14px;
-      transition: bottom .33s ease, opacity .33s ease;
-      opacity: 0;
+    button:hover {
+      background-color: #00ff00;
+      color: black;
     }
-    .panel.show { bottom: 5vh; opacity: 1; }
-    .panel.dissolve { opacity: 0; bottom: -100%; }
-
-    .row { display: grid; grid-template-columns: 140px 1fr; gap: 10px; align-items: start; margin: 8px 0; }
-    label { padding-top: 9px; text-align: right; }
-    input, textarea {
-      width: 100%; box-sizing: border-box;
-      background: rgba(0,0,0,.55); color: var(--green);
-      border: 1px solid var(--green); border-radius: 6px;
-      padding: 10px 12px; font: inherit; outline: none;
-    }
-    textarea { min-height: 160px; resize: vertical; }
-    .actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px; }
-    .subtle { opacity: .8; }
-
-    /* Toast */
-    .toast {
-      position: fixed; left: 50%; top: 16px; transform: translateX(-50%);
-      background: rgba(0,0,0,.85); border: 1px solid var(--green);
-      padding: 10px 14px; border-radius: 8px;
-      opacity: 0; transition: opacity .25s ease;
-      pointer-events: none; text-shadow: var(--glow);
-    }
-    .toast.show { opacity: 1; }
-    .status { margin-top: 6px; min-height: 1.2em; text-align: left; }
   </style>
 </head>
 <body>
-  <canvas id="matrix"></canvas>
-
-  <div class="container">
-    <h1>Silent Beacon – Secure Communications Portal</h1>
-    <div class="tag">One secure channel. Messages are end-to-end encrypted in your browser with our Proton public key.</div>
-    <button id="openSecure" class="btn">SECURE</button>
-  </div>
-
-  <!-- Slide-up secure form -->
-  <section id="panel" class="panel" aria-hidden="true" aria-label="Secure message form">
-    <form id="sb-form" autocomplete="off">
-      <input type="hidden" id="sb-ts" value="">
-      <div class="row">
-        <label for="sb-callsign">Callsign</label>
-        <input id="sb-callsign" name="callsign" maxlength="120" placeholder="Optional codename">
-      </div>
-      <div class="row">
-        <label for="sb-reply">Reply (email)</label>
-        <input id="sb-reply" name="reply" maxlength="200" placeholder="Optional – Proton preferred for E2E replies">
-      </div>
-      <div class="row">
-        <label for="sb-message">Message</label>
-        <textarea id="sb-message" name="message" placeholder="Write your message…"></textarea>
-      </div>
-      <div class="status subtle" id="sb-status"></div>
-      <div class="actions">
-        <button type="button" id="cancelBtn" class="btn" style="padding:10px 18px; font-size:1rem;">Cancel</button>
-        <button type="submit" id="sendBtn" class="btn" style="padding:10px 18px; font-size:1rem;">Send</button>
-      </div>
-    </form>
-  </section>
-
-  <div id="toast" class="toast">✓ Transmission sent</div>
-
-  <!-- OpenPGP (client-side crypto) -->
-  <script src="https://cdn.jsdelivr.net/npm/openpgp@5.11.0/dist/openpgp.min.js"></script>
-  <!-- All logic, encryption, and worker call lives here -->
-  <script src="./comms.js"></script>
+  <h1 class="matrix">Silent Beacon Comms</h1>
+  <form id="commsForm">
+    <textarea id="message" rows="8" placeholder="Enter your message..."></textarea><br>
+    <button type="submit">Send</button>
+  </form>
+  <p id="status"></p>
+  <script src="comms.js"></script>
 </body>
 </html>
