@@ -2,14 +2,22 @@
    Silent Beacon – Comms JS
    ======================= */
 
-/** Worker endpoint (already set to yours) */
+/** Worker endpoint */
 const WORKER_URL = 'https://sb-relay.overwatch1790.workers.dev/';
 
-/** Paste your FULL Proton public key (BEGIN/END included) between the backticks. */
+/** Proton public key */
 const PUBLIC_KEY_ASC = `
 -----BEGIN PGP PUBLIC KEY BLOCK-----
-PASTE YOUR FULL PUBLIC KEY HERE
-(Include the BEGIN/END lines exactly as exported)
+mDMEZp7LWxYJKwYBBAHaRw8BAQdA64U0wEjlEN1RRTVa97xXowW+gCeoqw1Yya+F
+nPBsuyC0J09WZXJXYXRjaCA8T3ZlcldhdGNoMTc5MEBwcm90b24ubWU+iJkEExYK
+ADsWIQS5TOI+Utu6ZqBHTHV7De36P5bMCgUCZp7LWwIbAwULCQgHAgIiAgYVCgkI
+CwIEFgIDAQIeBwIXgAAKCRB7De36P5bMChpKAPwN0vCtbdRxCWRsZL1AcxflLOfS
+nIB6RMyZ1JppM5rm9AEAwvvDDF4aMgq+MgyVKGLIzBdffkffYoTvNK4CGmlMlwC4
+OARmnstbEgorBgEEAZdVAQUBAQdA3BjQ5dNGBS1BbbTm9diZ6fmkqHEoZ08v9wnH
+rK3okVsDAQgHiHgEGBYKACAWIQS5TOI+Utu6ZqBHTHV7De36P5bMCgUCZp7LWwIb
+DAAKCRB7De36P5bMCr38AQDJPzPME+U1T7DKR7rM6BWmJr6nvocwLqaEDiqSZ9b1
+ZwD/YhybM4QXNEowOmtHhvYOX7YZiQafskIdMyd/BiDe4AU=
+=yedF
 -----END PGP PUBLIC KEY BLOCK-----
 `.trim();
 
