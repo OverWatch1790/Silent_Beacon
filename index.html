@@ -1,43 +1,107 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Silent Beacon</title>
+  <meta charset="UTF-8">
+  <title>Silent Beacon - Secure Communications Portal</title>
   <style>
     body {
-      background-color: black;
-      color: #00ff00;
-      font-family: "Courier New", monospace;
-      text-align: center;
       margin: 0;
-      padding: 0;
+      overflow: hidden;
+      background: black;
+      color: #0f0;
+      font-family: 'Courier New', monospace;
     }
-    .matrix {
-      animation: matrix 2s infinite;
+
+    /* Matrix canvas background */
+    canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: -1;
     }
-    @keyframes matrix {
-      0% { text-shadow: 0 0 5px #00ff00; }
-      50% { text-shadow: 0 0 20px #00ff00; }
-      100% { text-shadow: 0 0 5px #00ff00; }
+
+    .container {
+      text-align: center;
+      margin-top: 15vh;
+      color: #0f0;
+      text-shadow: 0 0 10px #0f0, 0 0 20px #0f0;
     }
-    a {
-      color: #00ff00;
+
+    h1 {
+      font-size: 2.5em;
+      margin-bottom: 40px;
+    }
+
+    .btn {
+      display: inline-block;
+      padding: 15px 30px;
+      margin: 15px;
+      font-size: 1.2em;
+      border: 2px solid #0f0;
+      color: #0f0;
+      background: transparent;
+      cursor: pointer;
+      transition: all 0.3s ease;
       text-decoration: none;
-      font-size: 1.5em;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      box-shadow: 0 0 10px #0f0, inset 0 0 5px #0f0;
     }
-    a:hover {
-      text-decoration: underline;
-    }
-    .center {
-      margin-top: 20%;
+
+    .btn:hover {
+      background: rgba(0, 255, 0, 0.2);
+      box-shadow: 0 0 20px #0f0, inset 0 0 10px #0f0;
+      transform: scale(1.05);
     }
   </style>
 </head>
 <body>
-  <div class="center">
-    <h1 class="matrix">SILENT BEACON</h1>
-    <p><a href="comms.html">Enter Secure Comms</a></p>
+  <canvas id="matrix"></canvas>
+  <div class="container">
+    <h1>Silent Beacon – Secure Communications Portal</h1>
+    <a href="#" class="btn">Secure Email</a>
+    <a href="#" class="btn">Unsecure Email</a>
+    <a href="#" class="btn">Unsecure Chat</a>
   </div>
+
+  <script>
+    // Matrix effect
+    const canvas = document.getElementById('matrix');
+    const ctx = canvas.getContext('2d');
+
+    canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth;
+
+    const letters = '01';
+    const fontSize = 14;
+    const columns = canvas.width / fontSize;
+
+    const drops = [];
+    for (let x = 0; x < columns; x++) {
+      drops[x] = 1;
+    }
+
+    function draw() {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = '#0f0';
+      ctx.font = fontSize + 'px monospace';
+
+      for (let i = 0; i < drops.length; i++) {
+        const text = letters[Math.floor(Math.random() * letters.length)];
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+
+        drops[i]++;
+      }
+    }
+
+    setInterval(draw, 33);
+  </script>
 </body>
 </html>
+
