@@ -5,11 +5,11 @@
 /** Cloudflare Worker endpoint (relay) */
 const WORKER_URL = 'https://sb-relay.overwatch1790.workers.dev/';
 
-/** Optional: if the inline key fails to parse, we fetch this file (upload to your repo). */
+/** Optional fallback key file (put your exported .asc here, same folder as comms.html) */
 const FALLBACK_KEY_URL = './proton.pub.asc';
 
-/** Your Proton public key (inline). We will TRY this first, then fall back to the file if needed. */
-const PUBLIC_KEY_ASC_INLINE = `
+/** Your Proton public key (inline). DO NOT EDIT. */
+const PUBLIC_KEY_ASC_INLINE_RAW = `
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 
 xjMEZKBTyBYJKwYBBAHaRw8BAQdAVnqbCVaw5PyjOnOkJolNcZIG8U/LaQRCt2PQBBH3P/fNMU92ZXJXYXRjaDE3OTBAcHJvdG9uLm1lIDxPdmVyV2F0Y2gxNzkwQHByb3Rvbi5tZT7CjAQQFgoAPgWCZKBTyAQLCQcICZBm/yLWGD5NWwMVCAoEFgACAQIZAQKbAwIeARYhBDoIkVCKSMHFEf3rHmb/ItYYPk1bAABpggEA9CWvaM0t2Jf5OZr+eTm5QEgBCRj+SdP43rSA8ZoI4bgBANPcCr+8TFU86dttlF8Lag4Ivxw6SG8+lADyIkw1XsMPzjgEZKBTyBIKKwYBBAGXVQEFAQEHQI9N25+McxGwawd57BEcA/H8vdtHEQtOJA4WWc6kd9NUAwEIB8J4BBgWCAAqBYJkoFPICZBm/yLWGD5NWwKbDBYhBDoIkVCKSMHFEf3rHmb/ItYYPk1bAAB27gEAsngTbrNXpPPYF3SMMpCkOE+JW9lMFfaX10M3i31XUgFAP46KM/SbUKx4VbrhU9enxZP6Jw5Ev67XvYdMGg1qFoD
@@ -17,6 +17,73 @@ xjMEZKBTyBYJKwYBBAHaRw8BAQdAVnqbCVaw5PyjOnOkJolNcZIG8U/LaQRCt2PQBBH3P/fNMU92ZXJX
 
 -----END PGP PUBLIC KEY BLOCK-----
 `.trim();
+
+/* ===== Utility: normalize armored key to strict OpenPGP format (fixes wrapping/blank-lines) ===== */
+function normalizeArmoredPublicKey(armored) {
+  const BEGIN = '-----BEGIN PGP PUBLIC KEY BLOCK-----';
+  const END   = '-----END PGP PUBLIC KEY BLOCK-----';
+
+  // Unify newlines and trim outer whitespace
+  armored = (armored || '').replace(/\r\n/g, '\n').trim();
+
+  const iBegin = armored.indexOf(BEGIN);
+  const iEnd   = armored.indexOf(END);
+  if (iBegin === -1 || iEnd === -1) throw new Error('Bad armor: missing BEGIN/END');
+
+  // Slice the inner section and split into lines
+  const head = BEGIN;
+  const tail = END;
+  const inner = armored.slice(iBegin + BEGIN.length, iEnd).replace(/^\s+|\s+$/g, '');
+  const lines = inner.split('\n');
+
+  // Separate optional headers (Version/Comment/etc) until first blank line
+  let idx = 0;
+  const headerLines = [];
+  while (idx < lines.length && lines[idx].trim() !== '') {
+    const L = lines[idx].trim();
+    // Treat only known header forms as headers; if not, break to payload
+    if (/^(Version|Comment|MessageID|Charset):/i.test(L)) {
+      headerLines.push(L);
+      idx++;
+    } else {
+      break;
+    }
+  }
+  // Expect a blank line after headers; if not present, we will ensure one
+  if (idx < lines.length && lines[idx].trim() === '') idx++;
+
+  // Collect payload lines up until checksum line (starts with '=')
+  const payloadBuf = [];
+  let checksum = '';
+  while (idx < lines.length) {
+    const L = lines[idx].trim();
+    if (L.startsWith('=')) { checksum = L; idx++; break; }
+    if (L) payloadBuf.push(L);
+    idx++;
+  }
+
+  // Re-wrap payload to 64-char lines
+  const payload = payloadBuf.join('').replace(/\s+/g, '');
+  const wrapped = [];
+  for (let i=0;i<payload.length;i+=64) wrapped.push(payload.slice(i, i+64));
+
+  // Build final armor with strict blank lines
+  const out = [
+    head,
+    headerLines.length ? headerLines.join('\n') : '',
+    '', // blank line before payload
+    wrapped.join('\n'),
+    checksum || '', // checksum line if present
+    '',
+    tail
+  ].filter((seg, i, arr) => {
+    // Keep intentionally blank lines (we inserted above), but avoid double blanks at edges
+    if (i === 1 && seg === '' && headerLines.length === 0) return false; // remove placeholder headers slot if none
+    return true;
+  }).join('\n').replace(/\n{3,}/g, '\n\n'); // compress triple+ newlines to double
+
+  return out;
+}
 
 /* ---------------------------------------
    Load OpenPGP if the page didn't already
@@ -34,31 +101,29 @@ async function ensureOpenPGP() {
 }
 
 /* ---------------------------------------
-   Obtain a valid armored public key
-   1) try inline key
-   2) fall back to ./proton.pub.asc (uploaded file)
+   Obtain a valid armored public key:
+   1) normalize + parse inline key
+   2) if that fails, fetch ./proton.pub.asc and normalize+parse
 ---------------------------------------- */
 async function getArmoredKey() {
   const openpgp = await ensureOpenPGP();
 
-  // Try inline first
-  if (PUBLIC_KEY_ASC_INLINE && PUBLIC_KEY_ASC_INLINE.includes('BEGIN PGP PUBLIC KEY BLOCK')) {
-    try {
-      await openpgp.readKey({ armoredKey: PUBLIC_KEY_ASC_INLINE });
-      return PUBLIC_KEY_ASC_INLINE;
-    } catch (e) {
-      console.warn('Inline key parse failed, falling back to file:', e?.message || e);
-    }
+  // Try inline first (normalize + parse)
+  try {
+    const normalizedInline = normalizeArmoredPublicKey(PUBLIC_KEY_ASC_INLINE_RAW);
+    await openpgp.readKey({ armoredKey: normalizedInline });
+    return normalizedInline;
+  } catch (e) {
+    console.warn('Inline key parse failed, falling back to file:', e?.message || e);
   }
 
-  // Fallback: fetch exact .asc from repo
+  // Fallback: fetch exact .asc from repo (optional, but recommended)
   const resp = await fetch(FALLBACK_KEY_URL, { cache: 'no-store' });
   if (!resp.ok) throw new Error('Failed to fetch proton.pub.asc');
-  const armored = await resp.text();
-
-  // Validate
-  await openpgp.readKey({ armoredKey: armored });
-  return armored;
+  const raw = await resp.text();
+  const normalizedFile = normalizeArmoredPublicKey(raw);
+  await openpgp.readKey({ armoredKey: normalizedFile });
+  return normalizedFile;
 }
 
 /* -------------------------
@@ -138,7 +203,7 @@ function resetAndHide(){
 -------------------------- */
 async function encryptForSB(plaintext){
   const openpgp = await ensureOpenPGP();
-  const armored = await getArmoredKey();                 // ✅ robust key acquisition
+  const armored = await getArmoredKey();                // ✅ robust key acquisition
   const pubKey  = await openpgp.readKey({ armoredKey: armored });
   const message = await openpgp.createMessage({ text: plaintext });
   return openpgp.encrypt({
@@ -227,10 +292,8 @@ window._sbTestKey = async function(){
     const openpgp = await ensureOpenPGP();
     const armored = await getArmoredKey();
     await openpgp.readKey({ armoredKey: armored });
-    console.log('✅ Proton key parsed OK');
     alert('✅ Proton key parsed OK');
   } catch(e){
-    console.error('❌ Key parse failed', e);
     alert('❌ Key parse failed: ' + e.message);
   }
 };
