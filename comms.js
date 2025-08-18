@@ -5,8 +5,11 @@
 /** Cloudflare Worker endpoint (relay) */
 const WORKER_URL = 'https://sb-relay.overwatch1790.workers.dev/';
 
-/** Your Proton public key (exactly as exported). DO NOT EDIT. */
-const PUBLIC_KEY_ASC = `
+/** Optional: if the inline key fails to parse, we fetch this file (upload to your repo). */
+const FALLBACK_KEY_URL = './proton.pub.asc';
+
+/** Your Proton public key (inline). We will TRY this first, then fall back to the file if needed. */
+const PUBLIC_KEY_ASC_INLINE = `
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 
 xjMEZKBTyBYJKwYBBAHaRw8BAQdAVnqbCVaw5PyjOnOkJolNcZIG8U/LaQRCt2PQBBH3P/fNMU92ZXJXYXRjaDE3OTBAcHJvdG9uLm1lIDxPdmVyV2F0Y2gxNzkwQHByb3Rvbi5tZT7CjAQQFgoAPgWCZKBTyAQLCQcICZBm/yLWGD5NWwMVCAoEFgACAQIZAQKbAwIeARYhBDoIkVCKSMHFEf3rHmb/ItYYPk1bAABpggEA9CWvaM0t2Jf5OZr+eTm5QEgBCRj+SdP43rSA8ZoI4bgBANPcCr+8TFU86dttlF8Lag4Ivxw6SG8+lADyIkw1XsMPzjgEZKBTyBIKKwYBBAGXVQEFAQEHQI9N25+McxGwawd57BEcA/H8vdtHEQtOJA4WWc6kd9NUAwEIB8J4BBgWCAAqBYJkoFPICZBm/yLWGD5NWwKbDBYhBDoIkVCKSMHFEf3rHmb/ItYYPk1bAAB27gEAsngTbrNXpPPYF3SMMpCkOE+JW9lMFfaX10M3i31XUgFAP46KM/SbUKx4VbrhU9enxZP6Jw5Ev67XvYdMGg1qFoD
@@ -28,6 +31,34 @@ async function ensureOpenPGP() {
     document.head.appendChild(s);
   });
   return window.openpgp;
+}
+
+/* ---------------------------------------
+   Obtain a valid armored public key
+   1) try inline key
+   2) fall back to ./proton.pub.asc (uploaded file)
+---------------------------------------- */
+async function getArmoredKey() {
+  const openpgp = await ensureOpenPGP();
+
+  // Try inline first
+  if (PUBLIC_KEY_ASC_INLINE && PUBLIC_KEY_ASC_INLINE.includes('BEGIN PGP PUBLIC KEY BLOCK')) {
+    try {
+      await openpgp.readKey({ armoredKey: PUBLIC_KEY_ASC_INLINE });
+      return PUBLIC_KEY_ASC_INLINE;
+    } catch (e) {
+      console.warn('Inline key parse failed, falling back to file:', e?.message || e);
+    }
+  }
+
+  // Fallback: fetch exact .asc from repo
+  const resp = await fetch(FALLBACK_KEY_URL, { cache: 'no-store' });
+  if (!resp.ok) throw new Error('Failed to fetch proton.pub.asc');
+  const armored = await resp.text();
+
+  // Validate
+  await openpgp.readKey({ armoredKey: armored });
+  return armored;
 }
 
 /* -------------------------
@@ -107,7 +138,8 @@ function resetAndHide(){
 -------------------------- */
 async function encryptForSB(plaintext){
   const openpgp = await ensureOpenPGP();
-  const pubKey  = await openpgp.readKey({ armoredKey: PUBLIC_KEY_ASC });
+  const armored = await getArmoredKey();                 // ✅ robust key acquisition
+  const pubKey  = await openpgp.readKey({ armoredKey: armored });
   const message = await openpgp.createMessage({ text: plaintext });
   return openpgp.encrypt({
     message,
@@ -145,7 +177,7 @@ Reply (optional) | ${reply || '(none)'}
 ${msg}`
       );
     } catch(err){
-      if (statusEl) statusEl.textContent = 'Encryption failed.';
+      if (statusEl) statusEl.textContent = 'Encryption failed: ' + (err?.message || '');
       if (sendBtn) sendBtn.disabled = false;
       return;
     }
@@ -188,12 +220,13 @@ ${msg}`
 }
 
 /* -------------------------
-   Debug: quick key-parse test
+   Debug helpers (optional)
 -------------------------- */
 window._sbTestKey = async function(){
   try {
     const openpgp = await ensureOpenPGP();
-    await openpgp.readKey({ armoredKey: PUBLIC_KEY_ASC });
+    const armored = await getArmoredKey();
+    await openpgp.readKey({ armoredKey: armored });
     console.log('✅ Proton key parsed OK');
     alert('✅ Proton key parsed OK');
   } catch(e){
