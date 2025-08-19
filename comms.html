@@ -285,7 +285,7 @@
   // Note: Your Worker CORS must allow this page's origin exactly.
   const RELAY_URL = "https://YOUR-SB-RELAY.workers.dev"; // <-- set this
 
-   /**************
+    /**************
    * MATRIX rain
    **************/
   (function(){
@@ -300,6 +300,9 @@
     const GLYPHS = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワン"
                   +"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
                   +"+-*/=<>()[]{}|\\!?:;.,#%@$&";
+
+    // 1/4 speed multiplier
+    const SPEED = 0.25;
 
     function resize(){
       const dpr = Math.max(1, window.devicePixelRatio || 1);
@@ -322,9 +325,9 @@
 
       for (let i=0;i<COLS;i++){
         dropsBack[i]  = Math.floor(Math.random()*-60);
-        speedBack[i]  = 0.6 + Math.random()*1.1; // slower, dimmer
+        speedBack[i]  = (0.6 + Math.random()*1.1) * SPEED; // slower, dimmer
         dropsFront[i] = Math.floor(Math.random()*-60);
-        speedFront[i] = 1.4 + Math.random()*1.8; // faster, brighter
+        speedFront[i] = (1.4 + Math.random()*1.8) * SPEED; // faster, brighter
       }
     }
     window.addEventListener('resize', resize, {passive:true});
@@ -342,6 +345,34 @@
 
         // advance
         drops[c] += speeds[c];
+
+        // recycle to top
+        if (y > H + (Math.random()*240)){
+          drops[c]  = Math.floor(Math.random()*-50);
+          speeds[c] = (alpha < 0.9 ? (0.6 + Math.random()*1.1) : (1.4 + Math.random()*1.8)) * SPEED;
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function tick(){
+      // faint black overlay for trails
+      ctx.fillStyle = "rgba(0,0,0,0.08)";
+      ctx.fillRect(0,0,W,H);
+
+      // glow color
+      ctx.fillStyle = "#00ff6a";
+
+      // background layer (subtle)
+      drawLayer(dropsBack, speedBack, 0.45);
+
+      // foreground layer (brighter)
+      drawLayer(dropsFront, speedFront, 0.95);
+
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  })();
 
         // recycle to top
         if (y > H + (Math.random()*240)){
