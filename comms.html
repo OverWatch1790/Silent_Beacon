@@ -285,58 +285,87 @@
   // Note: Your Worker CORS must allow this page's origin exactly.
   const RELAY_URL = "https://YOUR-SB-RELAY.workers.dev"; // <-- set this
 
-  /**************
+   /**************
    * MATRIX rain
    **************/
   (function(){
     const canvas = document.getElementById('matrix');
     const ctx = canvas.getContext('2d');
-    let w, h, cols, fontSize, drops, speeds;
+
+    let W, H, COLS, FS;
+    let dropsBack = [], speedBack = [];
+    let dropsFront = [], speedFront = [];
+
+    // Full Matrix glyph set (numbers + letters + symbols + katakana-style)
+    const GLYPHS = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワン"
+                  +"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+                  +"+-*/=<>()[]{}|\\!?:;.,#%@$&";
 
     function resize(){
       const dpr = Math.max(1, window.devicePixelRatio || 1);
-      w = canvas.width  = Math.floor(window.innerWidth * dpr);
-      h = canvas.height = Math.floor(window.innerHeight * dpr);
-      ctx.setTransform(1,0,0,1,0,0); // we'll use raw pixels; alpha trail handles blur
+      canvas.width  = Math.floor(window.innerWidth  * dpr);
+      canvas.height = Math.floor(window.innerHeight * dpr);
+      ctx.setTransform(1,0,0,1,0,0);
 
-      fontSize = Math.max(12, Math.min(22, Math.floor(window.innerWidth/70)));
-      ctx.font = fontSize + "px monospace";
+      W = canvas.width;
+      H = canvas.height;
 
-      cols = Math.ceil(w / fontSize);
-      drops  = new Array(cols);
-      speeds = new Array(cols);
-      for (let i=0;i<cols;i++){
-        drops[i] = Math.floor(Math.random() * -50); // start above screen at random
-        speeds[i]= 0.8 + Math.random()*1.8;         // per-column speed
+      FS = Math.max(12, Math.min(24, Math.floor(window.innerWidth/58)));
+      ctx.font = FS + "px monospace";
+
+      COLS = Math.ceil(W / FS);
+
+      dropsBack = new Array(COLS);
+      speedBack = new Array(COLS);
+      dropsFront = new Array(COLS);
+      speedFront = new Array(COLS);
+
+      for (let i=0;i<COLS;i++){
+        dropsBack[i]  = Math.floor(Math.random()*-60);
+        speedBack[i]  = 0.6 + Math.random()*1.1; // slower, dimmer
+        dropsFront[i] = Math.floor(Math.random()*-60);
+        speedFront[i] = 1.4 + Math.random()*1.8; // faster, brighter
       }
     }
     window.addEventListener('resize', resize, {passive:true});
     resize();
 
-    const chars = "01";
-    function tick(){
-      // translucent rect to create trail
-      ctx.fillStyle = "rgba(0,0,0,0.08)";
-      ctx.fillRect(0,0,w,h);
+    function drawLayer(drops, speeds, alpha){
+      ctx.globalAlpha = alpha;
+      for (let c=0;c<COLS;c++){
+        const x = c * FS;
+        const y = drops[c] * FS;
 
-      ctx.fillStyle = "#00ff6a";
-      for(let i=0;i<cols;i++){
-        const x = i*fontSize;
-        const y = drops[i]*fontSize;
-
-        // Draw glyph
-        const ch = chars.charAt(Math.random()*chars.length|0);
+        // choose and draw glyph
+        const ch = GLYPHS.charAt((Math.random()*GLYPHS.length)|0);
         ctx.fillText(ch, x, y);
 
-        // Move drop
-        drops[i] += speeds[i];
+        // advance
+        drops[c] += speeds[c];
 
-        // Randomly reset to top once it goes off screen
-        if (y > h + (Math.random()*200)){
-          drops[i] = Math.floor(Math.random() * -40);
-          speeds[i]= 0.8 + Math.random()*1.8;
+        // recycle to top
+        if (y > H + (Math.random()*240)){
+          drops[c]  = Math.floor(Math.random()*-50);
+          speeds[c] = (alpha < 0.9 ? (0.6 + Math.random()*1.1) : (1.4 + Math.random()*1.8));
         }
       }
+      ctx.globalAlpha = 1;
+    }
+
+    function tick(){
+      // faint black overlay for trails
+      ctx.fillStyle = "rgba(0,0,0,0.08)";
+      ctx.fillRect(0,0,W,H);
+
+      // glow color
+      ctx.fillStyle = "#00ff6a";
+
+      // background layer (subtle)
+      drawLayer(dropsBack, speedBack, 0.45);
+
+      // foreground layer (brighter)
+      drawLayer(dropsFront, speedFront, 0.95);
+
       requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
