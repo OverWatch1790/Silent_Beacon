@@ -149,47 +149,38 @@
       resize: vertical;
     }
 
-    .actions{
-      display:flex;
-      gap:12px;
-      align-items:center;
-      justify-content:flex-end;
-      margin-top:16px;
-    .btn{
+  .actions{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  justify-content:flex-end;
+  margin-top:16px;
+}
+
+/* Unified button style (all the same look/size) */
+.btn{
   appearance:none;
   border:1px solid var(--green);
   background:transparent;
   color:var(--green);
   padding:10px 16px;
   font-size:14px;
-  cursor:pointer;
+  line-height:1;
   border-radius:6px;
-  transition: background .2s ease, color .2s ease;
+  cursor:pointer;
+  min-width:92px;           /* keep buttons same width */
+  text-align:center;
+  transition: background .2s ease, color .2s ease, border-color .2s ease;
 }
 .btn:hover{
-  background:var(--green);
-  color:#000;
+  background:var(--green);  /* green fill on hover */
+  color:#000;               /* black text on hover */
+  border-color:var(--green);
 }
-      color: var(--yellow);
-      padding:12px 18px;
-      font-weight:bold;
-      letter-spacing:.08em;
-      border-radius:6px;
-      cursor:pointer;
-      box-shadow:
-        0 0 12px rgba(30,91,255,.55),
-        inset 0 0 6px rgba(255,212,0,.4);
-      animation: flashText 1.05s steps(2,end) infinite;
-    }
-    .btn-send:disabled
-    /* Send hover: fill green + black text */
-.btn-send:hover{
-  background: var(--green);
-  border-color: var(--green);
-  color: #000;
-  animation: none; /* stop flashing while hovered */
-      opacity:.6; cursor:not-allowed; animation:none;
-    }
+.btn:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+}
     @keyframes flashText{
       0%{ color: var(--yellow); }
       50%{ color: #fff29b; }
