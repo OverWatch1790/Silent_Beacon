@@ -49,7 +49,23 @@
   margin: 0;
   user-select: none;
     }
-
+/* Top Home link */
+.home-link{
+  position:fixed;
+  top:18px;
+  right:22px;
+  color:var(--green);
+  text-decoration:none;
+  border:1px solid var(--green);
+  padding:8px 12px;
+  border-radius:6px;
+  background:rgba(0,0,0,.35);
+  box-shadow: 0 0 8px rgba(0,255,106,.15), inset 0 0 6px rgba(0,255,106,.12);
+}
+.home-link:hover{
+  background:var(--green);
+  color:#000;
+}
     /* Centered launcher button */
     .center-cta{
       position:fixed;
@@ -233,6 +249,7 @@
     <h1 class="title">Silent Beacon Communications</h1>
   </div>
 
+  <a class="home-link" href="https://silentbeacon.neocities.org/">Home</a>
   <!-- Center Communicate button -->
   <div class="center-cta" id="centerCta">
     <button class="btn-communicate" id="openBtn" aria-haspopup="dialog" aria-controls="commsModal">
@@ -243,9 +260,7 @@
   <!-- Comms Modal -->
   <div class="comms-modal" id="commsModal" role="dialog" aria-modal="true" aria-labelledby="legend">
     <form class="comms-card" id="commsForm">
-      <div style="display:flex; justify-content:flex-end; margin-bottom:10px;">
-  <a href="index.html" class="btn">Home</a>
-</div>
+     
       <p class="legend" id="legend">/ / TRANSMISSION CHANNEL • PLAIN TEXT (TEMPORARY) / /</p>
 
       <div class="grid">
