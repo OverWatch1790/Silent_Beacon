@@ -1,48 +1,468 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Silent Beacon Comms</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Silent Beacon Communications</title>
+  <meta name="referrer" content="no-referrer" />
   <style>
-    body {
-      background-color: black;
-      color: #00ff00;
-      font-family: "Courier New", monospace;
-      text-align: center;
-      margin: 0;
-      padding: 0;
+    :root{
+      --green: #00ff6a;
+      --green-dim:#00c251;
+      --blue:#1e5bff;
+      --blue-dim:#163fb1;
+      --yellow:#ffd400;
+      --bg:#000;
     }
-    textarea, input {
-      background-color: black;
-      color: #00ff00;
-      border: 1px solid #00ff00;
-      width: 80%;
-      padding: 10px;
-      margin: 10px 0;
-      font-family: "Courier New", monospace;
+    html,body{height:100%;}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--green);
+      font-family:"Courier New", Courier, monospace;
+      overflow:hidden; /* matrix fills screen */
     }
-    button {
-      background-color: black;
-      color: #00ff00;
-      border: 1px solid #00ff00;
-      padding: 10px 20px;
-      cursor: pointer;
-      font-family: "Courier New", monospace;
+
+    /* Matrix canvas */
+    #matrix{
+      position:fixed;
+      inset:0;
+      z-index:-1;
     }
-    button:hover {
-      background-color: #00ff00;
-      color: black;
+
+    /* Top title (dissolves on open) */
+    .title-wrap{
+      position:fixed;
+      top:32px;
+      left:0; right:0;
+      display:flex;
+      justify-content:center;
+      pointer-events:none;
+    }
+    .title{
+      font-size: clamp(28px, 6vw, 56px);
+      color: var(--green);
+      text-shadow:
+        0 0 8px rgba(0,255,106,.75),
+        0 0 18px rgba(0,255,106,.35),
+        0 0 36px rgba(0,255,106,.25);
+      letter-spacing: .04em;
+      margin:0;
+      user-select:none;
+    }
+
+    /* Centered launcher button */
+    .center-cta{
+      position:fixed;
+      inset:0;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+    }
+    .btn-communicate{
+      appearance:none;
+      border:2px solid var(--blue);
+      background:rgba(30,91,255,.08);
+      color:#cfe2ff;
+      padding:16px 28px;
+      font-size: clamp(16px,3.5vw,22px);
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      cursor:pointer;
+      box-shadow:
+        0 0 12px rgba(30,91,255,.45),
+        inset 0 0 8px rgba(30,91,255,.35);
+      transition: transform .15s ease, box-shadow .2s ease, background .2s ease;
+    }
+    .btn-communicate:hover{
+      transform: translateY(-1px);
+      background:rgba(30,91,255,.14);
+      box-shadow:
+        0 0 16px rgba(30,91,255,.6),
+        inset 0 0 12px rgba(30,91,255,.45);
+    }
+
+    /* Comms modal (green themed) */
+    .comms-modal{
+      position:fixed;
+      inset:0;
+      display:none; /* shown when opened */
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+    }
+    .comms-card{
+      width:min(880px, 92vw);
+      backdrop-filter: blur(2px);
+      background: rgba(0,0,0,.55);
+      border: 2px solid var(--green);
+      box-shadow:
+        0 0 14px rgba(0,255,106,.28),
+        inset 0 0 10px rgba(0,255,106,.18);
+      border-radius: 10px;
+      padding: 20px 18px;
+      animation: fadeIn .24s ease both;
+    }
+    .legend{
+      font-size: 14px;
+      letter-spacing:.08em;
+      color: var(--green);
+      text-shadow: 0 0 8px rgba(0,255,106,.35);
+      margin: 0 0 12px 2px;
+      opacity:.9;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:12px;
+    }
+    .row{
+      margin-top:12px;
+    }
+    label{
+      display:block;
+      font-size:12px;
+      letter-spacing:.08em;
+      margin: 0 0 6px 2px;
+      color: var(--green-dim);
+    }
+    input, textarea{
+      width:100%;
+      box-sizing:border-box;
+      background: rgba(0,0,0,.55);
+      border:1px solid var(--green-dim);
+      color: var(--green);
+      padding:10px 12px;
+      font-family:inherit;
+      outline:none;
+      border-radius:6px;
+      caret-color: var(--green);
+      transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
+    }
+    input:focus, textarea:focus{
+      border-color: var(--green);
+      box-shadow: 0 0 8px rgba(0,255,106,.3);
+      background: rgba(0,0,0,.6);
+    }
+    textarea{
+      min-height: 180px;
+      resize: vertical;
+    }
+
+    .actions{
+      display:flex;
+      gap:12px;
+      align-items:center;
+      justify-content:flex-end;
+      margin-top:16px;
+    }
+
+    .btn-cancel{
+      appearance:none;
+      border:1px solid rgba(255,255,255,.2);
+      background:transparent;
+      color:#9ad9b7;
+      padding:10px 14px;
+      cursor:pointer;
+    }
+    .btn-send{
+      appearance:none;
+      border:2px solid var(--blue);
+      background: var(--blue);
+      color: var(--yellow);
+      padding:12px 18px;
+      font-weight:bold;
+      letter-spacing:.08em;
+      border-radius:6px;
+      cursor:pointer;
+      box-shadow:
+        0 0 12px rgba(30,91,255,.55),
+        inset 0 0 6px rgba(255,212,0,.4);
+      animation: flashText 1.05s steps(2,end) infinite;
+    }
+    .btn-send:disabled{
+      opacity:.6; cursor:not-allowed; animation:none;
+    }
+    @keyframes flashText{
+      0%{ color: var(--yellow); }
+      50%{ color: #fff29b; }
+      100%{ color: var(--yellow); }
+    }
+
+    /* Confirmation overlay (blue glow) */
+    .confirm{
+      position:fixed;
+      inset:0;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      pointer-events:none;
+    }
+    .confirm-text{
+      font-size: clamp(20px, 5vw, 44px);
+      color:#bcd6ff;
+      text-shadow:
+        0 0 10px rgba(30,91,255,.8),
+        0 0 22px rgba(30,91,255,.5),
+        0 0 40px rgba(30,91,255,.25);
+      letter-spacing:.06em;
+      animation: fadeIn .18s ease both;
+    }
+
+    /* Animations */
+    @keyframes fadeIn { from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none} }
+    @keyframes dissolve {
+      0% { opacity:1; filter:none; transform: scale(1); }
+      60%{ opacity:.3; filter: blur(2px); transform: scale(0.996) translateY(2px); }
+      100%{ opacity:0; filter: blur(3px); transform: scale(0.992) translateY(8px); }
+    }
+    .is-dissolving{ animation: dissolve .55s ease forwards; }
+
+    /* Utility */
+    .hidden{ display:none !important; }
+
+    /* Small screens */
+    @media (max-width:720px){
+      .grid{ grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
-  <h1 class="matrix">Silent Beacon Comms</h1>
-  <form id="commsForm">
-    <textarea id="message" rows="8" placeholder="Enter your message..."></textarea><br>
-    <button type="submit">Send</button>
-  </form>
-  <p id="status"></p>
-  <script src="comms.js"></script>
+  <canvas id="matrix" aria-hidden="true"></canvas>
+
+  <!-- Title (dissolves when opening comms) -->
+  <div class="title-wrap" id="titleWrap">
+    <h1 class="title">Silent Beacon Communications</h1>
+  </div>
+
+  <!-- Center Communicate button -->
+  <div class="center-cta" id="centerCta">
+    <button class="btn-communicate" id="openBtn" aria-haspopup="dialog" aria-controls="commsModal">
+      Communicate
+    </button>
+  </div>
+
+  <!-- Comms Modal -->
+  <div class="comms-modal" id="commsModal" role="dialog" aria-modal="true" aria-labelledby="legend">
+    <form class="comms-card" id="commsForm">
+      <p class="legend" id="legend">/ / TRANSMISSION CHANNEL • PLAIN TEXT (TEMPORARY) / /</p>
+
+      <div class="grid">
+        <div class="row">
+          <label for="callsign">Callsign</label>
+          <input id="callsign" name="callsign" maxlength="120" placeholder="e.g., SENTRY-21" autocomplete="nickname" />
+        </div>
+        <div class="row">
+          <label for="reply">Email (optional for response)</label>
+          <input id="reply" name="reply" type="email" maxlength="200" placeholder="you@proton.me" autocomplete="email" />
+        </div>
+      </div>
+
+      <div class="row">
+        <label for="message">Narrative</label>
+        <textarea id="message" name="message" placeholder="Type your communication..."></textarea>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn-cancel" id="cancelBtn">Cancel</button>
+        <button type="submit" class="btn-send" id="sendBtn">SEND</button>
+      </div>
+      <div id="status" aria-live="polite" style="margin-top:10px; font-size:12px; color:#9ad9b7;"></div>
+    </form>
+  </div>
+
+  <!-- Confirmation -->
+  <div class="confirm" id="confirm">
+    <div class="confirm-text">✔ Transmission Sent</div>
+  </div>
+
+  <script>
+  /**************
+   * CONFIG
+   **************/
+  // TODO: Replace with your Cloudflare Worker HTTPS URL.
+  // Note: Your Worker CORS must allow this page's origin exactly.
+  const RELAY_URL = "https://YOUR-SB-RELAY.workers.dev"; // <-- set this
+
+  /**************
+   * MATRIX rain
+   **************/
+  (function(){
+    const canvas = document.getElementById('matrix');
+    const ctx = canvas.getContext('2d');
+    let w, h, cols, fontSize, drops, speeds;
+
+    function resize(){
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      w = canvas.width  = Math.floor(window.innerWidth * dpr);
+      h = canvas.height = Math.floor(window.innerHeight * dpr);
+      ctx.setTransform(1,0,0,1,0,0); // we'll use raw pixels; alpha trail handles blur
+
+      fontSize = Math.max(12, Math.min(22, Math.floor(window.innerWidth/70)));
+      ctx.font = fontSize + "px monospace";
+
+      cols = Math.ceil(w / fontSize);
+      drops  = new Array(cols);
+      speeds = new Array(cols);
+      for (let i=0;i<cols;i++){
+        drops[i] = Math.floor(Math.random() * -50); // start above screen at random
+        speeds[i]= 0.8 + Math.random()*1.8;         // per-column speed
+      }
+    }
+    window.addEventListener('resize', resize, {passive:true});
+    resize();
+
+    const chars = "01";
+    function tick(){
+      // translucent rect to create trail
+      ctx.fillStyle = "rgba(0,0,0,0.08)";
+      ctx.fillRect(0,0,w,h);
+
+      ctx.fillStyle = "#00ff6a";
+      for(let i=0;i<cols;i++){
+        const x = i*fontSize;
+        const y = drops[i]*fontSize;
+
+        // Draw glyph
+        const ch = chars.charAt(Math.random()*chars.length|0);
+        ctx.fillText(ch, x, y);
+
+        // Move drop
+        drops[i] += speeds[i];
+
+        // Randomly reset to top once it goes off screen
+        if (y > h + (Math.random()*200)){
+          drops[i] = Math.floor(Math.random() * -40);
+          speeds[i]= 0.8 + Math.random()*1.8;
+        }
+      }
+      requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  })();
+
+  /***********************
+   * UI state + actions
+   ***********************/
+  const titleWrap = document.getElementById('titleWrap');
+  const centerCta = document.getElementById('centerCta');
+  const openBtn   = document.getElementById('openBtn');
+
+  const modal     = document.getElementById('commsModal');
+  const form      = document.getElementById('commsForm');
+  const cancelBtn = document.getElementById('cancelBtn');
+  const sendBtn   = document.getElementById('sendBtn');
+  const statusEl  = document.getElementById('status');
+
+  const confirmBox = document.getElementById('confirm');
+
+  function showModal(){
+    // dissolve title + button
+    titleWrap.classList.add('is-dissolving');
+    centerCta.classList.add('is-dissolving');
+
+    // after dissolve, hide them & show modal
+    setTimeout(() => {
+      titleWrap.classList.add('hidden');
+      centerCta.classList.add('hidden');
+      modal.style.display = 'flex';
+      // focus first field
+      const first = document.getElementById('callsign');
+      if (first) first.focus();
+    }, 560);
+  }
+
+  function hideModalImmediate(){
+    modal.style.display = 'none';
+  }
+
+  function dissolveModalThen(cb){
+    // dissolve the card only (nice effect)
+    form.classList.add('is-dissolving');
+    setTimeout(()=>{
+      hideModalImmediate();
+      form.classList.remove('is-dissolving');
+      if (typeof cb === 'function') cb();
+    }, 560);
+  }
+
+  function resetLauncher(){
+    // re-show title + button
+    titleWrap.classList.remove('hidden','is-dissolving');
+    centerCta.classList.remove('hidden','is-dissolving');
+  }
+
+  function showConfirmation(){
+    confirmBox.style.display = 'flex';
+  }
+  function dissolveConfirmation(cb){
+    const txt = confirmBox.firstElementChild;
+    if (txt) txt.classList.add('is-dissolving');
+    setTimeout(()=>{
+      confirmBox.style.display = 'none';
+      if (txt) txt.classList.remove('is-dissolving');
+      if (typeof cb === 'function') cb();
+    }, 560);
+  }
+
+  openBtn.addEventListener('click', showModal);
+  cancelBtn.addEventListener('click', () => {
+    dissolveModalThen(resetLauncher);
+  });
+
+  /************************
+   * Send (plain text POST)
+   ************************/
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    statusEl.textContent = '';
+    sendBtn.disabled = true;
+
+    const callsign = (document.getElementById('callsign').value || '').trim();
+    const reply    = (document.getElementById('reply').value || '').trim();
+    const message  = (document.getElementById('message').value || '').trim();
+
+    if (!message){
+      statusEl.textContent = '⚠ Please enter a message.';
+      sendBtn.disabled = false;
+      return;
+    }
+
+    const payload = { callsign, reply, message, plaintext: true };
+
+    try{
+      const r = await fetch(RELAY_URL, {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!r.ok){
+        const t = await r.text().catch(()=> '');
+        throw new Error('Relay error ' + r.status + (t? (': '+t) : ''));
+      }
+
+      // Success UX: dissolve form → show confirmation → dissolve → reset launcher
+      dissolveModalThen(()=>{
+        showConfirmation();
+        setTimeout(()=> dissolveConfirmation(resetLauncher), 1400);
+      });
+
+      // Clear fields for next use
+      form.reset();
+    }catch(err){
+      statusEl.textContent = '❌ Send failed. Please try again.';
+      console.error(err);
+    }finally{
+      sendBtn.disabled = false;
+    }
+  });
+  </script>
 </body>
 </html>
+
+
+
+
+
