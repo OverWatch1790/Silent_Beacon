@@ -4,14 +4,12 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Silent Beacon Communications</title>
-<link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&display=swap" rel="stylesheet">
   <meta name="referrer" content="no-referrer" />
   <style>
     :root{
-      --green: #00ff6a;
+      --green:#00ff6a;
       --green-dim:#00c251;
-      --blue:#1e5bff;
-      --blue-dim:#163fb1;
       --yellow:#ffd400;
       --bg:#000;
     }
@@ -31,227 +29,166 @@
       z-index:-1;
     }
 
-    /* Top title (dissolves on open) */
+    /* Top Home link (global) */
+    .home-link{
+      position:fixed;
+      top:18px;
+      right:22px;
+      z-index:5;
+      color:var(--green);
+      text-decoration:none;
+      border:1px solid var(--green);
+      padding:8px 12px;
+      border-radius:6px;
+      background:rgba(0,0,0,.35);
+      box-shadow:0 0 8px rgba(0,255,106,.15), inset 0 0 6px rgba(0,255,106,.12);
+    }
+    .home-link:hover{ background:var(--green); color:#000; }
+
+    /* Title (dissolves on open) */
     .title-wrap{
       position:fixed;
       top:32px;
       left:0; right:0;
-      display:flex;
-      justify-content:center;
-      pointer-events:none;
+      display:flex; justify-content:center;
+      pointer-events:none; /* let Home be clickable */
+      z-index:3;
     }
     .title{
-     font-family: "Black Ops One", "Impact", "Arial Black", sans-serif;
-    display:inline-block;
-  transform: scaleX(0.88);
-      font-size: clamp(28px, 6vw, 56px);
-  color: var(--green);
-  text-shadow: 0 0 6px rgba(0,255,106,.15); /* toned-down glow */
-  letter-spacing: .02em;
-  margin: 0;
-  user-select: none;
+      font-family:"Black Ops One","Impact","Arial Black",sans-serif;
+      font-size:clamp(36px, 7.5vw, 78px);   /* larger */
+      transform:scaleX(.82);                 /* skinnier */
+      display:inline-block;
+      color:var(--green);
+      text-shadow:0 0 6px rgba(0,255,106,.15);
+      letter-spacing:.02em;
+      margin:0;
+      user-select:none;
     }
-/* Top Home link */
-.home-link{
-  position:fixed;
-  top:18px;
-  right:22px;
-  color:var(--green);
-  text-decoration:none;
-  border:1px solid var(--green);
-  padding:8px 12px;
-  border-radius:6px;
-  background:rgba(0,0,0,.35);
-  box-shadow: 0 0 8px rgba(0,255,106,.15), inset 0 0 6px rgba(0,255,106,.12);
-}
-.home-link:hover{
-  background:var(--green);
-  color:#000;
-}
+
     /* Centered launcher button */
     .center-cta{
-      position:fixed;
-      inset:0;
-      display:flex;
-      align-items:center;
-      justify-content:center;
+      position:fixed; inset:0;
+      display:flex; align-items:center; justify-content:center;
+      z-index:2;
     }
     .btn-communicate{
-  appearance:none;
-  border:2px solid var(--green);
-  background: rgba(0,255,106,.06);
-  color: var(--green);
-  padding:16px 28px;
-  font-size: clamp(16px,3.5vw,22px);
-  letter-spacing:.12em;
-  text-transform:uppercase;
-  cursor:pointer;
-  box-shadow:
-    0 0 10px rgba(0,255,106,.25),
-    inset 0 0 6px rgba(0,255,106,.18);
-  transition: transform .15s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
+      appearance:none;
+      border:2px solid var(--green);
+      background:rgba(0,255,106,.06);
+      color:var(--green);
+      padding:16px 28px;
+      font-size:clamp(16px,3.5vw,22px);
+      letter-spacing:.12em; text-transform:uppercase;
+      cursor:pointer;
+      box-shadow:0 0 10px rgba(0,255,106,.25), inset 0 0 6px rgba(0,255,106,.18);
+      transition:transform .15s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
     }
-   .btn-communicate:hover{
-  transform: translateY(-1px);
-  background: rgba(0,255,106,.18);
-  box-shadow:
-    0 0 14px rgba(0,255,106,.38),
-    inset 0 0 10px rgba(0,255,106,.26);
+    .btn-communicate:hover{
+      transform:translateY(-1px);
+      background:rgba(0,255,106,.18);
+      box-shadow:0 0 14px rgba(0,255,106,.38), inset 0 0 10px rgba(0,255,106,.26);
     }
 
-    /* Comms modal (green themed) */
+    /* Comms modal */
     .comms-modal{
-      position:fixed;
-      inset:0;
-      display:none; /* shown when opened */
-      align-items:center;
-      justify-content:center;
-      padding:24px;
+      position:fixed; inset:0;
+      display:none; align-items:center; justify-content:center;
+      padding:24px; z-index:4;
     }
     .comms-card{
-      width:min(880px, 92vw);
-      backdrop-filter: blur(2px);
-      background: rgba(0,0,0,.55);
-      border: 2px solid var(--green);
-      box-shadow:
-        0 0 14px rgba(0,255,106,.28),
-        inset 0 0 10px rgba(0,255,106,.18);
-      border-radius: 10px;
-      padding: 20px 18px;
-      animation: fadeIn .24s ease both;
+      width:min(880px,92vw);
+      backdrop-filter:blur(2px);
+      background:rgba(0,0,0,.55);
+      border:2px solid var(--green);
+      box-shadow:0 0 14px rgba(0,255,106,.28), inset 0 0 10px rgba(0,255,106,.18);
+      border-radius:10px;
+      padding:20px 18px;
+      animation:fadeIn .24s ease both;
     }
     .legend{
-      font-size: 14px;
-      letter-spacing:.08em;
-      color: var(--green);
-      text-shadow: 0 0 8px rgba(0,255,106,.35);
-      margin: 0 0 12px 2px;
-      opacity:.9;
+      font-size:14px; letter-spacing:.08em;
+      color:var(--green);
+      text-shadow:0 0 8px rgba(0,255,106,.35);
+      margin:0 0 12px 2px; opacity:.9;
     }
-
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:12px;
-    }
-    .row{
-      margin-top:12px;
-    }
+    .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .row{ margin-top:12px; }
     label{
-      display:block;
-      font-size:12px;
-      letter-spacing:.08em;
-      margin: 0 0 6px 2px;
-      color: var(--green-dim);
+      display:block; font-size:12px; letter-spacing:.08em;
+      margin:0 0 6px 2px; color:var(--green-dim);
     }
-    input, textarea{
-      width:100%;
-      box-sizing:border-box;
-      background: rgba(0,0,0,.55);
+    input,textarea{
+      width:100%; box-sizing:border-box;
+      background:rgba(0,0,0,.55);
       border:1px solid var(--green-dim);
-      color: var(--green);
-      padding:10px 12px;
-      font-family:inherit;
-      outline:none;
-      border-radius:6px;
-      caret-color: var(--green);
+      color:var(--green);
+      padding:10px 12px; font-family:inherit; outline:none; border-radius:6px;
+      caret-color:var(--green);
       transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
     }
-    input:focus, textarea:focus{
-      border-color: var(--green);
-      box-shadow: 0 0 8px rgba(0,255,106,.3);
-      background: rgba(0,0,0,.6);
+    input:focus,textarea:focus{
+      border-color:var(--green);
+      box-shadow:0 0 8px rgba(0,255,106,.3);
+      background:rgba(0,0,0,.6);
     }
-    textarea{
-      min-height: 180px;
-      resize: vertical;
+    textarea{ min-height:180px; resize:vertical; }
+
+    .actions{
+      display:flex; gap:12px; align-items:center; justify-content:flex-end; margin-top:16px;
     }
-
-  .actions{
-  display:flex;
-  gap:12px;
-  align-items:center;
-  justify-content:flex-end;
-  margin-top:16px;
-}
-
-/* Unified button style (all the same look/size) */
-.btn{
-  appearance:none;
-  border:1px solid var(--green);
-  background:transparent;
-  color:var(--green);
-  padding:10px 16px;
-  font-size:14px;
-  line-height:1;
-  border-radius:6px;
-  cursor:pointer;
-  min-width:92px;           /* keep buttons same width */
-  text-align:center;
-  transition: background .2s ease, color .2s ease, border-color .2s ease;
-}
-.btn:hover{
-  background:var(--green);  /* green fill on hover */
-  color:#000;               /* black text on hover */
-  border-color:var(--green);
-}
-.btn:disabled{
-  opacity:.6;
-  cursor:not-allowed;
-}
-    @keyframes flashText{
-      0%{ color: var(--yellow); }
-      50%{ color: #fff29b; }
-      100%{ color: var(--yellow); }
+    /* Unified button style for Cancel/Clear/Send/Home inside form if any */
+    .btn{
+      appearance:none;
+      border:1px solid var(--green);
+      background:transparent;
+      color:var(--green);
+      padding:10px 16px;
+      font-size:14px; line-height:1;
+      border-radius:6px; cursor:pointer; min-width:92px; text-align:center;
+      transition:background .2s ease, color .2s ease, border-color .2s ease;
     }
+    .btn:hover{ background:var(--green); color:#000; border-color:var(--green); }
+    .btn:disabled{ opacity:.6; cursor:not-allowed; }
 
-    /* Confirmation overlay (blue glow) */
+    /* Confirmation overlay */
     .confirm{
-      position:fixed;
-      inset:0;
-      display:none;
-      align-items:center;
-      justify-content:center;
-      pointer-events:none;
+      position:fixed; inset:0;
+      display:none; align-items:center; justify-content:center; pointer-events:none; z-index:4;
     }
     .confirm-text{
-      font-size: clamp(20px, 5vw, 44px);
-      color:#bcd6ff;
-      text-shadow:
-        0 0 10px rgba(30,91,255,.8),
-        0 0 22px rgba(30,91,255,.5),
-        0 0 40px rgba(30,91,255,.25);
-      letter-spacing:.06em;
-      animation: fadeIn .18s ease both;
+      font-size:clamp(20px,5vw,44px); color:#bcd6ff;
+      text-shadow:0 0 10px rgba(30,91,255,.8),0 0 22px rgba(30,91,255,.5),0 0 40px rgba(30,91,255,.25);
+      letter-spacing:.06em; animation:fadeIn .18s ease both;
     }
 
     /* Animations */
-    @keyframes fadeIn { from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none} }
-    @keyframes dissolve {
-      0% { opacity:1; filter:none; transform: scale(1); }
-      60%{ opacity:.3; filter: blur(2px); transform: scale(0.996) translateY(2px); }
-      100%{ opacity:0; filter: blur(3px); transform: scale(0.992) translateY(8px); }
+    @keyframes fadeIn{ from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none} }
+    @keyframes dissolve{
+      0%{opacity:1; filter:none; transform:scale(1);}
+      60%{opacity:.3; filter:blur(2px); transform:scale(.996) translateY(2px);}
+      100%{opacity:0; filter:blur(3px); transform:scale(.992) translateY(8px);}
     }
-    .is-dissolving{ animation: dissolve .55s ease forwards; }
+    .is-dissolving{ animation:dissolve .55s ease forwards; }
 
     /* Utility */
     .hidden{ display:none !important; }
 
     /* Small screens */
-    @media (max-width:720px){
-      .grid{ grid-template-columns: 1fr; }
-    }
+    @media (max-width:720px){ .grid{ grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
   <canvas id="matrix" aria-hidden="true"></canvas>
+
+  <!-- Fixed Home button -->
+  <a class="home-link" href="https://silentbeacon.neocities.org/" target="_self">Home</a>
 
   <!-- Title (dissolves when opening comms) -->
   <div class="title-wrap" id="titleWrap">
     <h1 class="title">Silent Beacon Communications</h1>
   </div>
 
-  <a class="home-link" href="https://silentbeacon.neocities.org/">Home</a>
   <!-- Center Communicate button -->
   <div class="center-cta" id="centerCta">
     <button class="btn-communicate" id="openBtn" aria-haspopup="dialog" aria-controls="commsModal">
@@ -262,7 +199,6 @@
   <!-- Comms Modal -->
   <div class="comms-modal" id="commsModal" role="dialog" aria-modal="true" aria-labelledby="legend">
     <form class="comms-card" id="commsForm">
-     
       <p class="legend" id="legend">/ / TRANSMISSION CHANNEL • PLAIN TEXT (TEMPORARY) / /</p>
 
       <div class="grid">
@@ -283,8 +219,11 @@
 
       <div class="actions">
         <button type="button" class="btn" id="cancelBtn">Cancel</button>
-  <button type="reset" class="btn" id="clearBtn">Clear</button>
-  <button type="submit" class="btn" id="sendBtn">Send</button>
+        <button type="reset"  class="btn" id="clearBtn">Clear</button>
+        <button type="submit" class="btn" id="sendBtn">Send</button>
+      </div>
+      <div id="status" aria-live="polite" style="margin-top:10px; font-size:12px; color:#9ad9b7;"></div>
+    </form>
   </div>
 
   <!-- Confirmation -->
@@ -296,11 +235,10 @@
   /**************
    * CONFIG
    **************/
-  // TODO: Replace with your Cloudflare Worker HTTPS URL.
-  // Note: Your Worker CORS must allow this page's origin exactly.
-  const RELAY_URL = "https://YOUR-SB-RELAY.workers.dev"; // <-- set this
+  // Replace with your Cloudflare Worker HTTPS URL (must allow this origin via CORS)
+  const RELAY_URL = "https://YOUR-SB-RELAY.workers.dev";
 
-    /**************
+  /**************
    * MATRIX rain
    **************/
   (function(){
@@ -311,24 +249,20 @@
     let dropsBack = [], speedBack = [];
     let dropsFront = [], speedFront = [];
 
-    // Full Matrix glyph set (numbers + letters + symbols + katakana-style)
-    const GLYPHS = "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワン"
-                  +"0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-                  +"+-*/=<>()[]{}|\\!?:;.,#%@$&";
+    // Numbers, letters, symbols, katakana-style glyphs
+    const GLYPHS =
+      "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワン" +
+      "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" +
+      "+-*/=<>()[]{}|\\!?:;.,#%@$&";
 
-    // 1/4 speed multiplier
-    const SPEED = 0.15;  // was 0.25 → 40% slower
+    // Speed scale (40% slower than previous 0.25)
+    const SPEED = 0.15;
 
     function resize(){
-      const dpr = Math.max(1, window.devicePixelRatio || 1);
-      canvas.width  = Math.floor(window.innerWidth  * dpr);
-      canvas.height = Math.floor(window.innerHeight * dpr);
-      ctx.setTransform(1,0,0,1,0,0);
+      W = canvas.width  = window.innerWidth;
+      H = canvas.height = window.innerHeight;
 
-      W = canvas.width;
-      H = canvas.height;
-
-      FS = Math.max(12, Math.min(24, Math.floor(window.innerWidth/58)));
+      FS = Math.max(12, Math.min(24, Math.floor(W/58)));
       ctx.font = FS + "px monospace";
 
       COLS = Math.ceil(W / FS);
@@ -353,15 +287,9 @@
       for (let c=0;c<COLS;c++){
         const x = c * FS;
         const y = drops[c] * FS;
-
-        // choose and draw glyph
         const ch = GLYPHS.charAt((Math.random()*GLYPHS.length)|0);
         ctx.fillText(ch, x, y);
-
-        // advance
         drops[c] += speeds[c];
-
-        // recycle to top
         if (y > H + (Math.random()*360)){
           drops[c]  = Math.floor(Math.random()*-50);
           speeds[c] = (alpha < 0.9 ? (0.6 + Math.random()*1.1) : (1.4 + Math.random()*1.8)) * SPEED;
@@ -371,19 +299,11 @@
     }
 
     function tick(){
-      // faint black overlay for trails
-      ctx.fillStyle = "rgba(0,0,0,0.05)";  // longer trails
+      ctx.fillStyle = "rgba(0,0,0,0.05)"; // longer trails
       ctx.fillRect(0,0,W,H);
-
-      // glow color
       ctx.fillStyle = "#00ff6a";
-
-      // background layer (subtle)
-      drawLayer(dropsBack, speedBack, 0.45);
-
-      // foreground layer (brighter)
-      drawLayer(dropsFront, speedFront, 0.95);
-
+      drawLayer(dropsBack, speedBack, 0.45);  // background
+      drawLayer(dropsFront, speedFront, 0.95); // foreground
       requestAnimationFrame(tick);
     }
     requestAnimationFrame(tick);
@@ -399,64 +319,48 @@
   const modal     = document.getElementById('commsModal');
   const form      = document.getElementById('commsForm');
   const cancelBtn = document.getElementById('cancelBtn');
+  const clearBtn  = document.getElementById('clearBtn');
   const sendBtn   = document.getElementById('sendBtn');
   const statusEl  = document.getElementById('status');
-
-  const confirmBox = document.getElementById('confirm');
+  const confirmBox= document.getElementById('confirm');
 
   function showModal(){
-    // dissolve title + button
     titleWrap.classList.add('is-dissolving');
     centerCta.classList.add('is-dissolving');
-
-    // after dissolve, hide them & show modal
-    setTimeout(() => {
+    setTimeout(()=>{
       titleWrap.classList.add('hidden');
       centerCta.classList.add('hidden');
       modal.style.display = 'flex';
-      // focus first field
-      const first = document.getElementById('callsign');
-      if (first) first.focus();
-    }, 560);
+      (document.getElementById('callsign')||{}).focus?.();
+    },560);
   }
-
-  function hideModalImmediate(){
-    modal.style.display = 'none';
-  }
-
+  function hideModalImmediate(){ modal.style.display = 'none'; }
   function dissolveModalThen(cb){
-    // dissolve the card only (nice effect)
     form.classList.add('is-dissolving');
     setTimeout(()=>{
       hideModalImmediate();
       form.classList.remove('is-dissolving');
-      if (typeof cb === 'function') cb();
-    }, 560);
+      if(typeof cb==='function') cb();
+    },560);
   }
-
   function resetLauncher(){
-    // re-show title + button
     titleWrap.classList.remove('hidden','is-dissolving');
     centerCta.classList.remove('hidden','is-dissolving');
   }
-
-  function showConfirmation(){
-    confirmBox.style.display = 'flex';
-  }
+  function showConfirmation(){ confirmBox.style.display='flex'; }
   function dissolveConfirmation(cb){
     const txt = confirmBox.firstElementChild;
-    if (txt) txt.classList.add('is-dissolving');
+    if(txt) txt.classList.add('is-dissolving');
     setTimeout(()=>{
-      confirmBox.style.display = 'none';
-      if (txt) txt.classList.remove('is-dissolving');
-      if (typeof cb === 'function') cb();
-    }, 560);
+      confirmBox.style.display='none';
+      if(txt) txt.classList.remove('is-dissolving');
+      if(typeof cb==='function') cb();
+    },560);
   }
 
   openBtn.addEventListener('click', showModal);
-  cancelBtn.addEventListener('click', () => {
-    dissolveModalThen(resetLauncher);
-  });
+  cancelBtn.addEventListener('click', ()=> dissolveModalThen(resetLauncher));
+  clearBtn.addEventListener('click', ()=> { statusEl.textContent=''; });
 
   /************************
    * Send (plain text POST)
@@ -466,37 +370,33 @@
     statusEl.textContent = '';
     sendBtn.disabled = true;
 
-    const callsign = (document.getElementById('callsign').value || '').trim();
-    const reply    = (document.getElementById('reply').value || '').trim();
-    const message  = (document.getElementById('message').value || '').trim();
+    const callsign = (document.getElementById('callsign').value||'').trim();
+    const reply    = (document.getElementById('reply').value||'').trim();
+    const message  = (document.getElementById('message').value||'').trim();
 
-    if (!message){
+    if(!message){
       statusEl.textContent = '⚠ Please enter a message.';
       sendBtn.disabled = false;
       return;
     }
 
-    const payload = { callsign, reply, message, plaintext: true };
+    const payload = { callsign, reply, message, plaintext:true };
 
     try{
       const r = await fetch(RELAY_URL, {
         method:'POST',
         headers:{ 'Content-Type':'application/json' },
-        body: JSON.stringify(payload),
+        body:JSON.stringify(payload),
       });
-
-      if (!r.ok){
+      if(!r.ok){
         const t = await r.text().catch(()=> '');
         throw new Error('Relay error ' + r.status + (t? (': '+t) : ''));
       }
-
-      // Success UX: dissolve form → show confirmation → dissolve → reset launcher
+      // Success UX
       dissolveModalThen(()=>{
         showConfirmation();
         setTimeout(()=> dissolveConfirmation(resetLauncher), 1400);
       });
-
-      // Clear fields for next use
       form.reset();
     }catch(err){
       statusEl.textContent = '❌ Send failed. Please try again.';
@@ -508,8 +408,3 @@
   </script>
 </body>
 </html>
-
-
-
-
-
