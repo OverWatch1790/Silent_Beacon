@@ -374,34 +374,6 @@
     requestAnimationFrame(tick);
   })();
 
-        // recycle to top
-        if (y > H + (Math.random()*240)){
-          drops[c]  = Math.floor(Math.random()*-50);
-          speeds[c] = (alpha < 0.9 ? (0.6 + Math.random()*1.1) : (1.4 + Math.random()*1.8));
-        }
-      }
-      ctx.globalAlpha = 1;
-    }
-
-    function tick(){
-      // faint black overlay for trails
-      ctx.fillStyle = "rgba(0,0,0,0.08)";
-      ctx.fillRect(0,0,W,H);
-
-      // glow color
-      ctx.fillStyle = "#00ff6a";
-
-      // background layer (subtle)
-      drawLayer(dropsBack, speedBack, 0.45);
-
-      // foreground layer (brighter)
-      drawLayer(dropsFront, speedFront, 0.95);
-
-      requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-  })();
-
   /***********************
    * UI state + actions
    ***********************/
