@@ -85,8 +85,12 @@
   <div class="confirm" id="confirm"><div class="confirm-text">✔ Transmission Sent</div></div>
 
   <script>
-    const RELAY_URL = "https://sb-relay.overwatch1790.workers.dev";
-
+document.getElementById("commsForm").addEventListener("submit", function(e) {
+  const confirmBox = document.getElementById("confirm");
+  confirmBox.classList.add("show");
+  setTimeout(() => confirmBox.classList.remove("show"), 4000);
+});
+    </script>
     // Matrix background
     (function(){
       const canvas = document.getElementById('matrix');
