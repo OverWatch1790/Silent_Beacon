@@ -10,13 +10,21 @@ document.getElementById("commsForm").addEventListener("submit", async (e) => {
   }
 
   try {
-    // Right now: just simulate sending
-    console.log("Message submitted:", message);
-    status.textContent = "✅ Message submitted (plaintext test).";
-    
-    // Later: replace this with encryption + Proton send
-  } catch (error) {
-    console.error(error);
-    status.textContent = "❌ Error submitting message.";
+  const res = await fetch("https://sb-relay.YOUR_WORKER_SUBDOMAIN.workers.dev", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      message: message   // 👈 plain text message
+    }),
+  });
+
+  if (!res.ok) {
+    throw new Error(await res.text());
   }
+
+  status.textContent = "✅ Message sent to Proton (plaintext).";
+} catch (error) {
+  console.error(error);
+  status.textContent = "❌ Error submitting message.";
+}
 });
