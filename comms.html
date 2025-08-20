@@ -82,15 +82,16 @@
 
   <div class="confirm" id="confirm"><div class="confirm-text">✔ Transmission Sent</div></div>
 
-  <!-- Submit overlay ONLY (no preventDefault, no fetch) -->
+  <!-- Submit overlay (no preventDefault) -->
   <script>
     document.getElementById("commsForm").addEventListener("submit", () => {
-      document.getElementById("confirm").style.display = "flex";
-      setTimeout(() => { document.getElementById("confirm").style.display = "none"; }, 1200);
+      const c = document.getElementById("confirm");
+      c.style.display = "flex";
+      setTimeout(()=>{ c.style.display="none"; }, 1200);
     });
   </script>
 
-  <!-- Matrix background + UI (unchanged) -->
+  <!-- Matrix background + UI (unchanged; no custom send handler) -->
   <script>
     (function(){
       const canvas = document.getElementById('matrix');
@@ -107,12 +108,11 @@
       function tick(){ctx.fillStyle="rgba(0,0,0,0.05)";ctx.fillRect(0,0,W,H);ctx.fillStyle="#00ff6a";drawLayer(dropsBack,speedBack,0.45);drawLayer(dropsFront,speedFront,0.95);requestAnimationFrame(tick);}requestAnimationFrame(tick);
     })();
 
-    // UI state (open/close modal) — unchanged
     const titleWrap=document.getElementById('titleWrap');const centerCta=document.getElementById('centerCta');
     const openBtn=document.getElementById('openBtn');const modal=document.getElementById('commsModal');
     const form=document.getElementById('commsForm');const cancelBtn=document.getElementById('cancelBtn');
     const clearBtn=document.getElementById('clearBtn');const sendBtn=document.getElementById('sendBtn');
-    const statusEl=document.getElementById('status');const confirmBox=document.getElementById('confirm');
+    const statusEl=document.getElementById('status');
     function showModal(){titleWrap.classList.add('is-dissolving');centerCta.classList.add('is-dissolving');
       setTimeout(()=>{titleWrap.classList.add('hidden');centerCta.classList.add('hidden');modal.style.display='flex';},560);}
     function dissolveModalThen(cb){form.classList.add('is-dissolving');setTimeout(()=>{modal.style.display='none';form.classList.remove('is-dissolving');if(typeof cb==='function')cb();},560);}
@@ -120,8 +120,7 @@
     openBtn.addEventListener('click',showModal);
     cancelBtn.addEventListener('click',()=>dissolveModalThen(resetLauncher));
     clearBtn.addEventListener('click',()=>{statusEl.textContent='';});
-    // NO custom "Send" handler here — native form POST handles submission
+    /* No custom submit handler here */
   </script>
 </body>
 </html>
-
