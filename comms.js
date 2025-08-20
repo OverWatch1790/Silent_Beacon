@@ -11,6 +11,7 @@ document.getElementById("commsForm").addEventListener("submit", async (e) => {
 
   try {
   const res = await fetch("https://sb-relay.overwatch1790.workers.dev", {
+
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
