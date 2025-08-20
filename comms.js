@@ -13,18 +13,24 @@ document.getElementById("commsForm").addEventListener("submit", async (e) => {
     const res = await fetch("https://sb-relay.overwatch1790.workers.dev", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message }), // ⚠️ confirm this matches Formspree config
+      body: JSON.stringify({ message }),
     });
 
-    const data = await res.json();
-
-    if (res.ok && data.success) {
-      status.textContent = "✅ Message sent.";
-    } else {
-      status.textContent = "❌ Send failed. Try again.";
+    if (!res.ok) {
+      const errText = await res.text();
+      status.textContent = "❌ CLOUD → Worker error: " + errText;
+      return;
     }
+
+    const data = await res.json();
+    if (!data.success) {
+      status.textContent = "❌ FORM → Formspree rejected request.";
+      return;
+    }
+
+    status.textContent = "✅ Message sent (passed FORM). Check ProtonMail.";
   } catch (error) {
     console.error(error);
-    status.textContent = "❌ Send failed. Try again.";
+    status.textContent = "❌ NEO → Frontend/Fetch error. See console.";
   }
 });
