@@ -12,6 +12,7 @@
       font-family: 'Courier New', monospace;
     }
 
+    /* Matrix canvas background */
     canvas {
       position: fixed;
       top: 0;
@@ -21,84 +22,78 @@
 
     .container {
       text-align: center;
-      margin-top: 5vh;
+      margin-top: 10vh;
       color: #0f0;
       text-shadow: 0 0 10px #0f0, 0 0 20px #0f0;
     }
 
     h1 {
-      font-size: 3em;
-      margin-bottom: 20px;
+      font-size: 2.5em;
+      margin-bottom: 40px;
     }
 
-    .form-container {
-      width: 400px;
-      margin: auto;
-      background: rgba(0, 0, 0, 0.7);
-      border: 2px solid #0f0;
-      border-radius: 15px;
+    .form-box {
+      display: inline-block;
+      text-align: left;
       padding: 20px;
+      border: 1px solid #0f0;
+      border-radius: 10px;
       box-shadow: 0 0 20px #0f0;
+      background: rgba(0, 0, 0, 0.8);
     }
 
     label {
       display: block;
-      text-align: left;
-      margin-top: 10px;
-      margin-bottom: 5px;
-      color: #0f0;
+      margin: 10px 0 5px;
+      color: #9f9;
+      font-size: 14px;
     }
 
     input, textarea {
       width: 100%;
-      padding: 10px;
-      background: black;
+      padding: 8px;
+      margin-bottom: 10px;
       border: 1px solid #0f0;
+      border-radius: 5px;
+      background: black;
       color: #0f0;
       font-family: 'Courier New', monospace;
-      font-size: 1em;
+      font-size: 14px;
     }
 
     textarea {
-      height: 100px;
-      resize: none;
+      height: 80px;
     }
 
-    .button-group {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 15px;
+    .actions {
+      text-align: center;
     }
 
-    button {
-      padding: 10px 20px;
+    .btn {
       background: black;
-      border: 1px solid #0f0;
       color: #0f0;
+      border: 1px solid #0f0;
+      padding: 5px 15px;
+      margin: 5px;
+      border-radius: 5px;
       cursor: pointer;
+      font-size: 14px;
       font-family: 'Courier New', monospace;
     }
 
-    button:hover {
-      background: #0f0;
-      color: black;
+    .btn:hover {
+      background: #003300;
     }
 
     .confirm {
       display: none;
-      margin-top: 15px;
-      font-weight: bold;
-      color: #0f0;
+      margin-top: 20px;
+      font-size: 18px;
+      color: #9f9;
     }
 
-    .confirm.show {
-      display: block;
-    }
-
-    .error {
-      margin-top: 15px;
-      color: red;
-      font-weight: bold;
+    .confirm-text {
+      text-shadow: 0 0 10px #0f0, 0 0 20px #0f0;
     }
   </style>
 </head>
@@ -106,8 +101,9 @@
   <canvas id="matrix"></canvas>
   <div class="container">
     <h1>Silent Beacon</h1>
-    <div class="form-container">
-      <form id="commsForm">
+    <div class="form-box">
+      <!-- ✅ FIX #1: form action restored -->
+      <form id="commsForm" action="https://sb-relay.overwatch1790.workers.dev/" method="POST">
         <label for="from">From</label>
         <input type="email" id="from" name="from" required>
 
@@ -117,62 +113,82 @@
         <label for="message">Message</label>
         <textarea id="message" name="message" required></textarea>
 
-        <div class="button-group">
-          <button type="button" onclick="window.location.reload();">Cancel</button>
-          <button type="reset">Clear</button>
-          <button type="submit">Send</button>
+        <div class="actions">
+          <button type="button" class="btn" id="cancelBtn">Cancel</button>
+          <button type="reset" class="btn" id="clearBtn">Clear</button>
+          <button type="submit" class="btn" id="sendBtn">Send</button>
         </div>
+        <div id="status" aria-live="polite" style="margin-top:10px; font-size:12px; color:#9ad9b7;"></div>
       </form>
-      <div class="confirm" id="confirm">✔ Transmission Sent</div>
-      <div class="error" id="error"></div>
     </div>
+
+    <div class="confirm" id="confirm"><div class="confirm-text">✔ Transmission Sent</div></div>
   </div>
 
   <script>
-    // ✅ FIXED: single relay URL constant
-    const RELAY_URL = "https://silentbeacon-relay.yourdomain.workers.dev/"; 
+    // Matrix background effect
+    const canvas = document.getElementById("matrix");
+    const ctx = canvas.getContext("2d");
+    canvas.height = window.innerHeight;
+    canvas.width = window.innerWidth;
+    const letters = "アァカサタナハマヤャラワガザダバパイィキシチニヒミリヰギジヂビピウゥクスツヌフムユュルグズヅブプエェケセテネヘメレヱゲゼデベペオォコソトノホモヨョロヲゴゾドボポヴッンABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    const matrix = letters.split("");
+    const font_size = 14;
+    const columns = canvas.width / font_size;
+    const drops = Array(Math.floor(columns)).fill(1);
 
-    document.getElementById("commsForm").addEventListener("submit", async function(e) {
+    function draw() {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#0f0";
+      ctx.font = font_size + "px Courier";
+      for (let i = 0; i < drops.length; i++) {
+        const text = matrix[Math.floor(Math.random() * matrix.length)];
+        ctx.fillText(text, i * font_size, drops[i] * font_size);
+        if (drops[i] * font_size > canvas.height && Math.random() > 0.975) {
+          drops[i] = 0;
+        }
+        drops[i]++;
+      }
+    }
+    setInterval(draw, 35);
+
+    // Form handling
+    const form = document.getElementById("commsForm");
+    const statusDiv = document.getElementById("status");
+    const confirmBox = document.getElementById("confirm");
+
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const confirmBox = document.getElementById("confirm");
-      const errorBox = document.getElementById("error");
+      statusDiv.textContent = "Transmitting...";
 
-      errorBox.textContent = "";
-
-      const from = document.getElementById("from").value;
-      const subject = document.getElementById("subject").value;
-      const message = document.getElementById("message").value;
+      const formData = new FormData(form);
 
       try {
-        const response = await fetch(RELAY_URL, {
+        // ✅ FIX #2: fetch now uses form.action instead of hardcoded URL
+        const response = await fetch(form.action, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ from, subject, message })
+          body: JSON.stringify(Object.fromEntries(formData)),
         });
 
         if (response.ok) {
-          confirmBox.classList.add("show");
-          setTimeout(() => confirmBox.classList.remove("show"), 4000);
-          document.getElementById("commsForm").reset();
+          statusDiv.textContent = "";
+          confirmBox.style.display = "block";
+          form.reset();
+          setTimeout(() => { confirmBox.style.display = "none"; }, 3000);
         } else {
-          errorBox.textContent = "Error: Unable to send message.";
+          const errorText = await response.text();
+          statusDiv.textContent = "Error: " + errorText;
         }
-      } catch (err) {
-        errorBox.textContent = "Error: Unable to send message.";
+      } catch (error) {
+        statusDiv.textContent = "Error: Unable to send message.";
       }
     });
 
-    // Matrix background (unchanged)
-    (function(){
-      const canvas = document.getElementById('matrix');
-      const ctx = canvas.getContext('2d');
-      let W,H,COLS,FS; let dropsBack=[],speedBack=[]; let dropsFront=[],speedFront=[];
-      const GLYPHS="アイウエオカキクケコサシスセソ...0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-*/=<>()[]{}|\\";
-      const SPEED=0.15;
-      function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;FS=Math.max(12,Math.min(24,Math.floor(W/100)));COLS=Math.floor(W/FS);dropsBack=new Array(COLS);speedBack=new Array(COLS);dropsFront=new Array(COLS);speedFront=new Array(COLS);for(let x=0;x<COLS;x++){dropsBack[x]=Math.random()*-H;speedBack[x]=2+Math.random()*3;dropsFront[x]=Math.random()*-H;speedFront[x]=4+Math.random()*4;}}
-      function draw(){ctx.fillStyle="rgba(0,0,0,0.05)";ctx.fillRect(0,0,W,H);ctx.fillStyle="#0f0";ctx.font=FS+"px monospace";for(let i=0;i<COLS;i++){let text=GLYPHS.charAt(Math.floor(Math.random()*GLYPHS.length));ctx.fillText(text,i*FS,dropsBack[i]*FS);if(dropsBack[i]*FS>H&&Math.random()>0.975)dropsBack[i]=0;dropsBack[i]+=speedBack[i]*SPEED;ctx.fillText(text,i*FS,dropsFront[i]*FS);if(dropsFront[i]*FS>H&&Math.random()>0.975)dropsFront[i]=0;dropsFront[i]+=speedFront[i]*SPEED;}}
-      window.addEventListener("resize",resize);resize();setInterval(draw,33);
-    })();
+    document.getElementById("cancelBtn").addEventListener("click", () => {
+      window.location.href = "/";
+    });
   </script>
 </body>
 </html>
