@@ -1,410 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Silent Beacon Communications</title>
-  <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&display=swap" rel="stylesheet">
-  <meta name="referrer" content="no-referrer" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Silent Beacon – Secure Comms</title>
   <style>
-    :root{
-      --green:#00ff6a;
-      --green-dim:#00c251;
-      --yellow:#ffd400;
-      --bg:#000;
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: black;
+      color: #0f0;
+      text-align: center;
     }
-    html,body{height:100%;}
-    body{
-      margin:0;
-      background:var(--bg);
-      color:var(--green);
-      font-family:"Courier New", Courier, monospace;
-      overflow:hidden; /* matrix fills screen */
+    .container {
+      margin: 10vh auto;
+      width: 90%;
+      max-width: 600px;
     }
-
-    /* Matrix canvas */
-    #matrix{
-      position:fixed;
-      inset:0;
-      z-index:-1;
+    h1 {
+      font-size: 2em;
+      margin-bottom: 20px;
+      text-shadow: 0 0 10px #0f0;
     }
-
-    /* Top Home link (global) */
-    .home-link{
-      position:fixed;
-      top:18px;
-      right:22px;
-      z-index:5;
-      color:var(--green);
-      text-decoration:none;
-      border:1px solid var(--green);
-      padding:8px 12px;
-      border-radius:6px;
-      background:rgba(0,0,0,.35);
-      box-shadow:0 0 8px rgba(0,255,106,.15), inset 0 0 6px rgba(0,255,106,.12);
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
-    .home-link:hover{ background:var(--green); color:#000; }
-
-    /* Title (dissolves on open) */
-    .title-wrap{
-      position:fixed;
-      top:32px;
-      left:0; right:0;
-      display:flex; justify-content:center;
-      pointer-events:none; /* let Home be clickable */
-      z-index:3;
+    input, textarea, button {
+      padding: 10px;
+      border-radius: 6px;
+      border: none;
+      font-size: 1em;
     }
-    .title{
-      font-family:"Black Ops One","Impact","Arial Black",sans-serif;
-      font-size:clamp(36px, 7.5vw, 78px);   /* larger */
-      transform:scaleX(.82);                 /* skinnier */
-      display:inline-block;
-      color:var(--green);
-      text-shadow:0 0 6px rgba(0,255,106,.15);
-      letter-spacing:.02em;
-      margin:0;
-      user-select:none;
+    input, textarea {
+      background: #111;
+      color: #0f0;
+      border: 1px solid #0f0;
     }
-
-    /* Centered launcher button */
-    .center-cta{
-      position:fixed; inset:0;
-      display:flex; align-items:center; justify-content:center;
-      z-index:2;
+    button {
+      background: #0f0;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.2s;
     }
-    .btn-communicate{
-      appearance:none;
-      border:2px solid var(--green);
-      background:rgba(0,255,106,.06);
-      color:var(--green);
-      padding:16px 28px;
-      font-size:clamp(16px,3.5vw,22px);
-      letter-spacing:.12em; text-transform:uppercase;
-      cursor:pointer;
-      box-shadow:0 0 10px rgba(0,255,106,.25), inset 0 0 6px rgba(0,255,106,.18);
-      transition:transform .15s ease, box-shadow .2s ease, background .2s ease, color .2s ease;
+    button:hover {
+      background: #4f4;
     }
-    .btn-communicate:hover{
-      transform:translateY(-1px);
-      background:rgba(0,255,106,.18);
-      box-shadow:0 0 14px rgba(0,255,106,.38), inset 0 0 10px rgba(0,255,106,.26);
+    #status {
+      margin-top: 15px;
+      font-size: 1.1em;
+      min-height: 1.4em;
     }
-
-    /* Comms modal */
-    .comms-modal{
-      position:fixed; inset:0;
-      display:none; align-items:center; justify-content:center;
-      padding:24px; z-index:4;
-    }
-    .comms-card{
-      width:min(880px,92vw);
-      backdrop-filter:blur(2px);
-      background:rgba(0,0,0,.55);
-      border:2px solid var(--green);
-      box-shadow:0 0 14px rgba(0,255,106,.28), inset 0 0 10px rgba(0,255,106,.18);
-      border-radius:10px;
-      padding:20px 18px;
-      animation:fadeIn .24s ease both;
-    }
-    .legend{
-      font-size:14px; letter-spacing:.08em;
-      color:var(--green);
-      text-shadow:0 0 8px rgba(0,255,106,.35);
-      margin:0 0 12px 2px; opacity:.9;
-    }
-    .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
-    .row{ margin-top:12px; }
-    label{
-      display:block; font-size:12px; letter-spacing:.08em;
-      margin:0 0 6px 2px; color:var(--green-dim);
-    }
-    input,textarea{
-      width:100%; box-sizing:border-box;
-      background:rgba(0,0,0,.55);
-      border:1px solid var(--green-dim);
-      color:var(--green);
-      padding:10px 12px; font-family:inherit; outline:none; border-radius:6px;
-      caret-color:var(--green);
-      transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;
-    }
-    input:focus,textarea:focus{
-      border-color:var(--green);
-      box-shadow:0 0 8px rgba(0,255,106,.3);
-      background:rgba(0,0,0,.6);
-    }
-    textarea{ min-height:180px; resize:vertical; }
-
-    .actions{
-      display:flex; gap:12px; align-items:center; justify-content:flex-end; margin-top:16px;
-    }
-    /* Unified button style for Cancel/Clear/Send/Home inside form if any */
-    .btn{
-      appearance:none;
-      border:1px solid var(--green);
-      background:transparent;
-      color:var(--green);
-      padding:10px 16px;
-      font-size:14px; line-height:1;
-      border-radius:6px; cursor:pointer; min-width:92px; text-align:center;
-      transition:background .2s ease, color .2s ease, border-color .2s ease;
-    }
-    .btn:hover{ background:var(--green); color:#000; border-color:var(--green); }
-    .btn:disabled{ opacity:.6; cursor:not-allowed; }
-
-    /* Confirmation overlay */
-    .confirm{
-      position:fixed; inset:0;
-      display:none; align-items:center; justify-content:center; pointer-events:none; z-index:4;
-    }
-    .confirm-text{
-      font-size:clamp(20px,5vw,44px); color:#bcd6ff;
-      text-shadow:0 0 10px rgba(30,91,255,.8),0 0 22px rgba(30,91,255,.5),0 0 40px rgba(30,91,255,.25);
-      letter-spacing:.06em; animation:fadeIn .18s ease both;
-    }
-
-    /* Animations */
-    @keyframes fadeIn{ from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none} }
-    @keyframes dissolve{
-      0%{opacity:1; filter:none; transform:scale(1);}
-      60%{opacity:.3; filter:blur(2px); transform:scale(.996) translateY(2px);}
-      100%{opacity:0; filter:blur(3px); transform:scale(.992) translateY(8px);}
-    }
-    .is-dissolving{ animation:dissolve .55s ease forwards; }
-
-    /* Utility */
-    .hidden{ display:none !important; }
-
-    /* Small screens */
-    @media (max-width:720px){ .grid{ grid-template-columns:1fr; } }
   </style>
 </head>
 <body>
-  <canvas id="matrix" aria-hidden="true"></canvas>
-
-  <!-- Fixed Home button -->
-  <a class="home-link" href="https://silentbeacon.neocities.org/" target="_self">Home</a>
-
-  <!-- Title (dissolves when opening comms) -->
-  <div class="title-wrap" id="titleWrap">
-    <h1 class="title">Silent Beacon Communications</h1>
-  </div>
-
-  <!-- Center Communicate button -->
-  <div class="center-cta" id="centerCta">
-    <button class="btn-communicate" id="openBtn" aria-haspopup="dialog" aria-controls="commsModal">
-      Communicate
-    </button>
-  </div>
-
-  <!-- Comms Modal -->
-  <div class="comms-modal" id="commsModal" role="dialog" aria-modal="true" aria-labelledby="legend">
-    <form class="comms-card" id="commsForm">
-      <p class="legend" id="legend">/ / TRANSMISSION CHANNEL • End 2 End Encyrption Capabilities Pending / /</p>
-
-      <div class="grid">
-        <div class="row">
-          <label for="callsign">Callsign</label>
-          <input id="callsign" name="callsign" maxlength="120" placeholder="e.g., SENTRY-21" autocomplete="nickname" />
-        </div>
-        <div class="row">
-          <label for="reply">Email (optional for response - Proton Email Recomended if Requesting a Response)</label>
-          <input id="reply" name="reply" type="email" maxlength="200" placeholder="you@proton.me" autocomplete="email" />
-        </div>
-      </div>
-
-      <div class="row">
-        <label for="message">Narrative</label>
-        <textarea id="message" name="message" placeholder="Type your communication..."></textarea>
-      </div>
-
-      <div class="actions">
-        <button type="button" class="btn" id="cancelBtn">Cancel</button>
-        <button type="reset"  class="btn" id="clearBtn">Clear</button>
-        <button type="submit" class="btn" id="sendBtn">Send</button>
-      </div>
-      <div id="status" aria-live="polite" style="margin-top:10px; font-size:12px; color:#9ad9b7;"></div>
+  <div class="container">
+    <h1>Silent Beacon – Secure Comms</h1>
+    <form id="commsForm">
+      <input type="text" id="callsign" name="callsign" placeholder="Your Callsign" required />
+      <input type="email" id="reply" name="reply" placeholder="Reply Email (optional)" />
+      <textarea id="message" name="message" rows="6" placeholder="Enter your message..." required></textarea>
+      <button type="submit">Send Secure Message</button>
     </form>
+    <div id="status"></div>
   </div>
 
-  <!-- Confirmation -->
-  <div class="confirm" id="confirm">
-    <div class="confirm-text">✔ Transmission Sent</div>
-  </div>
-
-  <script>
-  /**************
-   * CONFIG
-   **************/
-  // Replace with your Cloudflare Worker HTTPS URL (must allow this origin via CORS)
-  const RELAY_URL = "https://sb-relay.overwatch1790.workers.dev";
-
-  /**************
-   * MATRIX rain
-   **************/
-  (function(){
-    const canvas = document.getElementById('matrix');
-    const ctx = canvas.getContext('2d');
-
-    let W, H, COLS, FS;
-    let dropsBack = [], speedBack = []; 
-    let dropsFront = [], speedFront = [];
-
-    // Numbers, letters, symbols, katakana-style glyphs
-    const GLYPHS =
-      "アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワン" +
-      "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" +
-      "+-*/=<>()[]{}|\\!?:;.,#%@$&";
-
-    // Speed scale (40% slower than previous 0.25)
-    const SPEED = 0.15;
-
-    function resize(){
-      W = canvas.width  = window.innerWidth;
-      H = canvas.height = window.innerHeight;
-
-      FS = Math.max(12, Math.min(24, Math.floor(W/58)));
-      ctx.font = FS + "px monospace";
-
-      COLS = Math.ceil(W / FS);
-
-      dropsBack = new Array(COLS);
-      speedBack = new Array(COLS);
-      dropsFront = new Array(COLS);
-      speedFront = new Array(COLS);
-
-      for (let i=0;i<COLS;i++){
-        dropsBack[i]  = Math.floor(Math.random()*-60);
-        speedBack[i]  = (0.6 + Math.random()*1.1) * SPEED; // slower, dimmer
-        dropsFront[i] = Math.floor(Math.random()*-60);
-        speedFront[i] = (1.4 + Math.random()*1.8) * SPEED; // faster, brighter
-      }
-    }
-    window.addEventListener('resize', resize, {passive:true});
-    resize();
-
-    function drawLayer(drops, speeds, alpha){
-      ctx.globalAlpha = alpha;
-      for (let c=0;c<COLS;c++){
-        const x = c * FS;
-        const y = drops[c] * FS;
-        const ch = GLYPHS.charAt((Math.random()*GLYPHS.length)|0);
-        ctx.fillText(ch, x, y);
-        drops[c] += speeds[c];
-        if (y > H + (Math.random()*360)){
-          drops[c]  = Math.floor(Math.random()*-50);
-          speeds[c] = (alpha < 0.9 ? (0.6 + Math.random()*1.1) : (1.4 + Math.random()*1.8)) * SPEED;
-        }
-      }
-      ctx.globalAlpha = 1;
-    }
-
-    function tick(){
-      ctx.fillStyle = "rgba(0,0,0,0.05)"; // longer trails
-      ctx.fillRect(0,0,W,H);
-      ctx.fillStyle = "#00ff6a";
-      drawLayer(dropsBack, speedBack, 0.45);  // background
-      drawLayer(dropsFront, speedFront, 0.95); // foreground
-      requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-  })();
-
-  /***********************
-   * UI state + actions
-   ***********************/
-  const titleWrap = document.getElementById('titleWrap');
-  const centerCta = document.getElementById('centerCta');
-  const openBtn   = document.getElementById('openBtn');
-
-  const modal     = document.getElementById('commsModal');
-  const form      = document.getElementById('commsForm');
-  const cancelBtn = document.getElementById('cancelBtn');
-  const clearBtn  = document.getElementById('clearBtn');
-  const sendBtn   = document.getElementById('sendBtn');
-  const statusEl  = document.getElementById('status');
-  const confirmBox= document.getElementById('confirm');
-
-  function showModal(){
-    titleWrap.classList.add('is-dissolving');
-    centerCta.classList.add('is-dissolving');
-    setTimeout(()=>{
-      titleWrap.classList.add('hidden');
-      centerCta.classList.add('hidden');
-      modal.style.display = 'flex';
-      (document.getElementById('callsign')||{}).focus?.();
-    },560);
-  }
-  function hideModalImmediate(){ modal.style.display = 'none'; }
-  function dissolveModalThen(cb){
-    form.classList.add('is-dissolving');
-    setTimeout(()=>{
-      hideModalImmediate();
-      form.classList.remove('is-dissolving');
-      if(typeof cb==='function') cb();
-    },560);
-  }
-  function resetLauncher(){
-    titleWrap.classList.remove('hidden','is-dissolving');
-    centerCta.classList.remove('hidden','is-dissolving');
-  }
-  function showConfirmation(){ confirmBox.style.display='flex'; }
-  function dissolveConfirmation(cb){
-    const txt = confirmBox.firstElementChild;
-    if(txt) txt.classList.add('is-dissolving');
-    setTimeout(()=>{
-      confirmBox.style.display='none';
-      if(txt) txt.classList.remove('is-dissolving');
-      if(typeof cb==='function') cb();
-    },560);
-  }
-
-  openBtn.addEventListener('click', showModal);
-  cancelBtn.addEventListener('click', ()=> dissolveModalThen(resetLauncher));
-  clearBtn.addEventListener('click', ()=> { statusEl.textContent=''; });
-
-  /************************
-   * Send (plain text POST)
-   ************************/
-  form.addEventListener('submit', async (e)=>{
-    e.preventDefault();
-    statusEl.textContent = '';
-    sendBtn.disabled = true;
-
-    const callsign = (document.getElementById('callsign').value||'').trim();
-    const reply    = (document.getElementById('reply').value||'').trim();
-    const message  = (document.getElementById('message').value||'').trim();
-
-    if(!message){
-      statusEl.textContent = '⚠ Please enter a message.';
-      sendBtn.disabled = false;
-      return;
-    }
-
-    const payload = { callsign, reply, message, plaintext:true };
-
-    try{
-      const r = await fetch(RELAY_URL, {
-        method:'POST',
-        headers:{ 'Content-Type':'application/json' },
-        body:JSON.stringify(payload),
-      });
-      if(!r.ok){
-        const t = await r.text().catch(()=> '');
-        throw new Error('Relay error ' + r.status + (t? (': '+t) : ''));
-      }
-      // Success UX
-      dissolveModalThen(()=>{
-        showConfirmation();
-        setTimeout(()=> dissolveConfirmation(resetLauncher), 1400);
-      });
-      form.reset();
-    }catch(err){
-      statusEl.textContent = '❌ Send failed. Please try again.';
-      console.error(err);
-    }finally{
-      sendBtn.disabled = false;
-    }
-  });
-  </script>
+  <!-- Load the external script -->
+  <script src="comms.js"></script>
 </body>
 </html>
