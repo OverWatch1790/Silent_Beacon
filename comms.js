@@ -17,20 +17,24 @@ document.getElementById("commsForm").addEventListener("submit", async (e) => {
     });
 
     if (!res.ok) {
-      const errText = await res.text();
-      status.textContent = "❌ CLOUD → Worker error: " + errText;
-      return;
+      const errorText = await res.text();
+      throw new Error(`Relay error [${res.status}]: ${errorText}`);
     }
 
-    const data = await res.json();
-    if (!data.success) {
-      status.textContent = "❌ FORM → Formspree rejected request.";
-      return;
+    const data = await res.json().catch(() => ({}));
+    if (data.success) {
+      status.textContent = "✅ Message sent successfully via Worker → Formspree.";
+    } else {
+      status.textContent = "⚠️ Worker returned but no success flag.";
     }
-
-    status.textContent = "✅ Message sent (passed FORM). Check ProtonMail.";
   } catch (error) {
-    console.error(error);
-    status.textContent = "❌ NEO → Frontend/Fetch error. See console.";
+    console.error("Detailed error:", error);
+    if (error.message.includes("Relay error")) {
+      status.textContent = `❌ Relay/Worker failed: ${error.message}`;
+    } else if (error.message.includes("Failed to fetch")) {
+      status.textContent = "❌ Network/Cloudflare fetch failed (Worker not reachable).";
+    } else {
+      status.textContent = `❌ Unknown client error: ${error.message}`;
+    }
   }
 });
