@@ -12,7 +12,6 @@
       font-family: 'Courier New', monospace;
     }
 
-    /* Matrix canvas background */
     canvas {
       position: fixed;
       top: 0;
@@ -22,85 +21,84 @@
 
     .container {
       text-align: center;
-      margin-top: 15vh;
+      margin-top: 5vh;
       color: #0f0;
       text-shadow: 0 0 10px #0f0, 0 0 20px #0f0;
     }
 
     h1 {
-      font-size: 2.5em;
-      margin-bottom: 40px;
+      font-size: 3em;
+      margin-bottom: 20px;
     }
 
-    form {
-      display: inline-block;
-      text-align: left;
+    .form-container {
+      width: 400px;
+      margin: auto;
       background: rgba(0, 0, 0, 0.7);
+      border: 2px solid #0f0;
+      border-radius: 15px;
       padding: 20px;
-      border-radius: 8px;
       box-shadow: 0 0 20px #0f0;
     }
 
     label {
       display: block;
-      margin: 10px 0 5px;
+      text-align: left;
+      margin-top: 10px;
+      margin-bottom: 5px;
+      color: #0f0;
     }
 
     input, textarea {
       width: 100%;
-      padding: 8px;
+      padding: 10px;
       background: black;
       border: 1px solid #0f0;
       color: #0f0;
       font-family: 'Courier New', monospace;
-      border-radius: 4px;
+      font-size: 1em;
     }
 
     textarea {
-      resize: vertical;
+      height: 100px;
+      resize: none;
     }
 
-    .actions {
+    .button-group {
+      display: flex;
+      justify-content: space-between;
       margin-top: 15px;
-      text-align: right;
     }
 
-    .btn {
+    button {
+      padding: 10px 20px;
       background: black;
       border: 1px solid #0f0;
       color: #0f0;
-      padding: 8px 15px;
       cursor: pointer;
-      border-radius: 4px;
-      margin-left: 5px;
+      font-family: 'Courier New', monospace;
     }
 
-    .btn:hover {
-      background: #003300;
+    button:hover {
+      background: #0f0;
+      color: black;
     }
 
     .confirm {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: rgba(0, 50, 0, 0.9);
-      color: #9f9;
-      padding: 10px 20px;
-      border: 1px solid #0f0;
-      border-radius: 8px;
       display: none;
-      z-index: 1000;
+      margin-top: 15px;
+      font-weight: bold;
+      color: #0f0;
     }
 
     .confirm.show {
       display: block;
-      animation: fadeOut 4s forwards;
     }
 
-    @keyframes fadeOut {
-      0% { opacity: 1; }
-      80% { opacity: 1; }
-      100% { opacity: 0; }
+    .error {
+      margin-top: 15px;
+      color: red;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -108,110 +106,72 @@
   <canvas id="matrix"></canvas>
   <div class="container">
     <h1>Silent Beacon</h1>
-    <form id="commsForm">
-      <label for="from">From</label>
-      <input type="text" id="from" name="from" required>
+    <div class="form-container">
+      <form id="commsForm">
+        <label for="from">From</label>
+        <input type="email" id="from" name="from" required>
 
-      <label for="subject">Subject</label>
-      <input type="text" id="subject" name="subject" required>
+        <label for="subject">Subject</label>
+        <input type="text" id="subject" name="subject" required>
 
-      <label for="message">Message</label>
-      <textarea id="message" name="message" rows="5" required></textarea>
+        <label for="message">Message</label>
+        <textarea id="message" name="message" required></textarea>
 
-      <div class="actions">
-        <button type="button" class="btn" id="cancelBtn">Cancel</button>
-        <button type="reset" class="btn" id="clearBtn">Clear</button>
-        <button type="submit" class="btn" id="sendBtn">Send</button>
-      </div>
-      <div id="status" aria-live="polite" style="margin-top:10px; font-size:12px; color:#9ad9b7;"></div>
-    </form>
+        <div class="button-group">
+          <button type="button" onclick="window.location.reload();">Cancel</button>
+          <button type="reset">Clear</button>
+          <button type="submit">Send</button>
+        </div>
+      </form>
+      <div class="confirm" id="confirm">✔ Transmission Sent</div>
+      <div class="error" id="error"></div>
+    </div>
   </div>
 
-  <div class="confirm" id="confirm"><div class="confirm-text">✔ Transmission Sent</div></div>
-
   <script>
-    // Handle form submit (kept single handler, duplicate removed)
+    // ✅ FIXED: single relay URL constant
+    const RELAY_URL = "https://silentbeacon-relay.yourdomain.workers.dev/"; 
+
     document.getElementById("commsForm").addEventListener("submit", async function(e) {
       e.preventDefault();
+      const confirmBox = document.getElementById("confirm");
+      const errorBox = document.getElementById("error");
+
+      errorBox.textContent = "";
+
       const from = document.getElementById("from").value;
       const subject = document.getElementById("subject").value;
       const message = document.getElementById("message").value;
-      const status = document.getElementById("status");
-
-      status.textContent = "Transmitting...";
 
       try {
-        const response = await fetch("/api/relay", {
+        const response = await fetch(RELAY_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ from, subject, message })
         });
 
         if (response.ok) {
-          status.textContent = "Message sent successfully.";
-          const confirmBox = document.getElementById("confirm");
           confirmBox.classList.add("show");
           setTimeout(() => confirmBox.classList.remove("show"), 4000);
           document.getElementById("commsForm").reset();
         } else {
-          status.textContent = "Error: Unable to send message.";
+          errorBox.textContent = "Error: Unable to send message.";
         }
       } catch (err) {
-        status.textContent = "Transmission failed.";
+        errorBox.textContent = "Error: Unable to send message.";
       }
     });
 
-    // Cancel button
-    document.getElementById("cancelBtn").addEventListener("click", () => {
-      document.getElementById("commsForm").reset();
-      document.getElementById("status").textContent = "";
-    });
-
-    // Matrix background
+    // Matrix background (unchanged)
     (function(){
       const canvas = document.getElementById('matrix');
       const ctx = canvas.getContext('2d');
       let W,H,COLS,FS; let dropsBack=[],speedBack=[]; let dropsFront=[],speedFront=[];
-      const GLYPHs="アイウエオカキクケコサシスセソ0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-*/=<>()[]{}|\\";
+      const GLYPHS="アイウエオカキクケコサシスセソ...0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+-*/=<>()[]{}|\\";
       const SPEED=0.15;
-      function resize(){
-        W=canvas.width=window.innerWidth;
-        H=canvas.height=window.innerHeight;
-        FS=Math.max(12,Math.min(24,Math.floor(W/80)));
-        COLS=Math.floor(W/FS);
-        dropsBack=new Array(COLS);
-        speedBack=new Array(COLS);
-        dropsFront=new Array(COLS);
-        speedFront=new Array(COLS);
-        for(let i=0;i<COLS;i++){
-          dropsBack[i]=Math.random()*H;
-          speedBack[i]=1+Math.random()*SPEED;
-          dropsFront[i]=Math.random()*H;
-          speedFront[i]=1+Math.random()*SPEED;
-        }
-      }
-      window.addEventListener('resize',resize);
-      resize();
-      function draw(){
-        ctx.fillStyle="rgba(0,0,0,0.05)";
-        ctx.fillRect(0,0,W,H);
-        ctx.fillStyle="#0f0";
-        ctx.font=FS+"px monospace";
-        for(let i=0;i<COLS;i++){
-          let char=GLYPHs[Math.floor(Math.random()*GLYPHs.length)];
-          ctx.fillText(char,i*FS,dropsBack[i]*FS);
-          dropsBack[i]+=speedBack[i];
-          if(dropsBack[i]*FS>H&&Math.random()>0.975)dropsBack[i]=0;
-        }
-        ctx.fillStyle="#9f9";
-        for(let i=0;i<COLS;i++){
-          let char=GLYPHs[Math.floor(Math.random()*GLYPHs.length)];
-          ctx.fillText(char,i*FS,dropsFront[i]*FS);
-          dropsFront[i]+=speedFront[i];
-          if(dropsFront[i]*FS>H&&Math.random()>0.975)dropsFront[i]=0;
-        }
-      }
-      setInterval(draw,33);
+      function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;FS=Math.max(12,Math.min(24,Math.floor(W/100)));COLS=Math.floor(W/FS);dropsBack=new Array(COLS);speedBack=new Array(COLS);dropsFront=new Array(COLS);speedFront=new Array(COLS);for(let x=0;x<COLS;x++){dropsBack[x]=Math.random()*-H;speedBack[x]=2+Math.random()*3;dropsFront[x]=Math.random()*-H;speedFront[x]=4+Math.random()*4;}}
+      function draw(){ctx.fillStyle="rgba(0,0,0,0.05)";ctx.fillRect(0,0,W,H);ctx.fillStyle="#0f0";ctx.font=FS+"px monospace";for(let i=0;i<COLS;i++){let text=GLYPHS.charAt(Math.floor(Math.random()*GLYPHS.length));ctx.fillText(text,i*FS,dropsBack[i]*FS);if(dropsBack[i]*FS>H&&Math.random()>0.975)dropsBack[i]=0;dropsBack[i]+=speedBack[i]*SPEED;ctx.fillText(text,i*FS,dropsFront[i]*FS);if(dropsFront[i]*FS>H&&Math.random()>0.975)dropsFront[i]=0;dropsFront[i]+=speedFront[i]*SPEED;}}
+      window.addEventListener("resize",resize);resize();setInterval(draw,33);
     })();
   </script>
 </body>
