@@ -13,7 +13,7 @@
     .home-link{ position:fixed; top:18px; right:22px; z-index:5; color:var(--green); text-decoration:none; border:1px solid var(--green); padding:8px 12px; border-radius:6px; background:rgba(0,0,0,.35); box-shadow:0 0 8px rgba(0,255,106,.15), inset 0 0 6px rgba(0,255,106,.12);}
     .home-link:hover{ background:var(--green); color:#000; }
     .title-wrap{ position:fixed; top:32px; left:0; right:0; display:flex; justify-content:center; pointer-events:none; z-index:3;}
-    .title{ font-family:"Black Ops One","Impact","Arial Black",sans-serif; font-size:clamp(36px, 7.5vw, 78px); transform:scaleX(.82); display:inline-block; color:var(--green); text-shadow:0 0 6px rgba(0,255,106,.15); letter-spacing:.02em; margin:0; user-select:none; }
+    .title{ font-family:inherit; font-weight:400; font-size:clamp(36px, 7.5vw, 78px); letter-spacing:.12em; text-transform:uppercase; transform:scaleX(1); display:inline-block; color:var(--green); text-shadow:0 0 6px rgba(0,255,106,.15); margin:0; user-select:none; }
     .center-cta{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:2; }
     .btn-communicate{ appearance:none; border:2px solid var(--green); background:rgba(0,255,106,.06); color:var(--green); padding:16px 28px; font-size:clamp(16px,3.5vw,22px); letter-spacing:.12em; text-transform:uppercase; cursor:pointer; box-shadow:0 0 10px rgba(0,255,106,.25), inset 0 0 6px rgba(0,255,106,.18); transition:transform .15s ease, box-shadow .2s ease, background .2s ease, color .2s ease;}
     .btn-communicate:hover{ transform:translateY(-1px); background:rgba(0,255,106,.18); box-shadow:0 0 14px rgba(0,255,106,.38), inset 0 0 10px rgba(0,255,106,.26); }
@@ -29,6 +29,7 @@
     .actions{ display:flex; gap:12px; align-items:center; justify-content:flex-end; margin-top:16px; }
     .btn{ appearance:none; border:1px solid var(--green); background:transparent; color:var(--green); padding:10px 16px; font-size:14px; line-height:1; border-radius:6px; cursor:pointer; min-width:92px; text-align:center; transition:background .2s ease, color .2s ease, border-color .2s ease;}
     .btn:hover{ background:var(--green); color:#000; border-color:var(--green);}
+    .btn:active, .btn:focus { background:var(--green); color:#000; border-color:var(--green); }
     .btn:disabled{ opacity:.6; cursor:not-allowed;}
     .confirm{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; pointer-events:none; z-index:4;}
     .confirm-text{ font-size:clamp(20px,5vw,44px); color:#bcd6ff; text-shadow:0 0 10px rgba(30,91,255,.8),0 0 22px rgba(30,91,255,.5),0 0 40px rgba(30,91,255,.25); letter-spacing:.06em; animation:fadeIn .18s ease both; }
