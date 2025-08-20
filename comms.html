@@ -14,6 +14,9 @@
     .home-link:hover{ background:var(--green); color:#000; }
     .title-wrap{ position:fixed; top:32px; left:0; right:0; display:flex; justify-content:center; pointer-events:none; z-index:3;}
     .title{ font-family:inherit; font-weight:400; font-size:clamp(36px, 7.5vw, 78px); letter-spacing:.12em; text-transform:uppercase; transform:scaleX(1); display:inline-block; color:var(--green); text-shadow:0 0 6px rgba(0,255,106,.15); margin:0; user-select:none; }
+    .title-stack{ display:flex; flex-direction:column; align-items:center; gap:6px; }
+    .brand-title{ font-family:inherit; font-weight:400; letter-spacing:.12em; text-transform:uppercase; font-size:clamp(18px,3vw,24px); color:var(--green); }
+    .page-title{ font-family:inherit; font-weight:400; letter-spacing:.12em; text-transform:uppercase; font-size:clamp(28px,6.5vw,52px); color:var(--green); text-shadow:0 0 6px rgba(0,255,106,.15); }
     .center-cta{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:2; }
     .btn-communicate{ appearance:none; border:2px solid var(--green); background:rgba(0,255,106,.06); color:var(--green); padding:16px 28px; font-size:clamp(16px,3.5vw,22px); letter-spacing:.12em; text-transform:uppercase; cursor:pointer; box-shadow:0 0 10px rgba(0,255,106,.25), inset 0 0 6px rgba(0,255,106,.18); transition:transform .15s ease, box-shadow .2s ease, background .2s ease, color .2s ease;}
     .btn-communicate:hover{ transform:translateY(-1px); background:rgba(0,255,106,.18); box-shadow:0 0 14px rgba(0,255,106,.38), inset 0 0 10px rgba(0,255,106,.26); }
@@ -32,8 +35,15 @@
     .btn:active, .btn:focus { background:var(--green); color:#000; border-color:var(--green); }
     .btn:disabled{ opacity:.6; cursor:not-allowed;}
     .confirm{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; pointer-events:none; z-index:4;}
-    .confirm-text{ font-size:clamp(20px,5vw,44px); color:#bcd6ff; text-shadow:0 0 10px rgba(30,91,255,.8),0 0 22px rgba(30,91,255,.5),0 0 40px rgba(30,91,255,.25); letter-spacing:.06em; animation:fadeIn .18s ease both; }
+    .confirm-text{ font-size:clamp(20px,5vw,44px); color:var(--green); text-shadow:0 0 10px rgba(0,255,106,.55),0 0 22px rgba(0,255,106,.35),0 0 40px rgba(0,255,106,.2); letter-spacing:.06em; }
     @keyframes fadeIn{ from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none} }
+        @keyframes fadeInOut{ 
+      0%{opacity:0; transform:translateY(6px)} 
+      10%{opacity:1; transform:none} 
+      90%{opacity:1; transform:none} 
+      100%{opacity:0; transform:translateY(6px)} 
+    }
+    .confirm.show .confirm-text{ animation: fadeInOut 1.6s ease both; }
     @keyframes dissolve{ 0%{opacity:1; filter:none; transform:scale(1);} 60%{opacity:.3; filter:blur(2px); transform:scale(.996) translateY(2px);} 100%{opacity:0; filter:blur(3px); transform:scale(.992) translateY(8px);} }
     .is-dissolving{ animation:dissolve .55s ease forwards; }
     .hidden{ display:none !important; }
@@ -44,7 +54,13 @@
   <canvas id="matrix" aria-hidden="true"></canvas>
   <a class="home-link" href="https://silentbeacon.neocities.org/" target="_self">Home</a>
 
-  <div class="title-wrap" id="titleWrap"><h1 class="title">Silent Beacon Communications</h1></div>
+ <div class="title-wrap" id="titleWrap">
+  <div class="title-stack">
+    <div class="brand-title">Silent Beacon</div>
+    <div class="page-title">Communications</div>
+  </div>
+</div>
+
   <div class="center-cta" id="centerCta"><button class="btn-communicate" id="openBtn">Communicate</button></div>
 
   <div class="comms-modal" id="commsModal">
@@ -85,11 +101,13 @@
 
   <!-- Submit overlay (no preventDefault) -->
   <script>
-    document.getElementById("commsForm").addEventListener("submit", () => {
+        document.getElementById("commsForm").addEventListener("submit", () => {
       const c = document.getElementById("confirm");
       c.style.display = "flex";
-      setTimeout(()=>{ c.style.display="none"; }, 1200);
+      c.classList.add("show");
+      setTimeout(()=>{ c.classList.remove("show"); c.style.display = "none"; }, 1600);
     });
+
   </script>
 
   <!-- Matrix background + UI (unchanged; no custom send handler) -->
