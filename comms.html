@@ -3,72 +3,76 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Silent Beacon – Secure Comms</title>
+  <title>Silent Beacon - Secure Comms</title>
   <style>
     body {
       margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
       background: black;
       color: #0f0;
-      text-align: center;
+      font-family: 'Courier New', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
     }
-    .container {
-      margin: 10vh auto;
-      width: 90%;
-      max-width: 600px;
-    }
+
     h1 {
-      font-size: 2em;
-      margin-bottom: 20px;
-      text-shadow: 0 0 10px #0f0;
+      text-shadow: 0 0 10px #0f0, 0 0 20px #0f0;
     }
+
     form {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
+      width: 90%;
+      max-width: 500px;
     }
-    input, textarea, button {
-      padding: 10px;
-      border-radius: 6px;
-      border: none;
-      font-size: 1em;
-    }
-    input, textarea {
+
+    textarea {
       background: #111;
       color: #0f0;
       border: 1px solid #0f0;
+      border-radius: 8px;
+      padding: 10px;
+      font-family: 'Courier New', monospace;
+      font-size: 1em;
+      resize: vertical;
+      min-height: 120px;
     }
+
     button {
       background: #0f0;
       color: black;
+      border: none;
+      padding: 10px;
+      border-radius: 8px;
       font-weight: bold;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: background 0.3s;
     }
+
     button:hover {
-      background: #4f4;
+      background: #2f2;
     }
+
     #status {
-      margin-top: 15px;
-      font-size: 1.1em;
-      min-height: 1.4em;
+      margin-top: 10px;
+      font-weight: bold;
+      min-height: 20px;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Silent Beacon – Secure Comms</h1>
-    <form id="commsForm">
-      <input type="text" id="callsign" name="callsign" placeholder="Your Callsign" required />
-      <input type="email" id="reply" name="reply" placeholder="Reply Email (optional)" />
-      <textarea id="message" name="message" rows="6" placeholder="Enter your message..." required></textarea>
-      <button type="submit">Send Secure Message</button>
-    </form>
-    <div id="status"></div>
-  </div>
+  <h1>Silent Beacon - Secure Comms</h1>
 
-  <!-- Load the external script -->
+  <form id="commsForm">
+    <textarea id="message" placeholder="Enter your secure message..."></textarea>
+    <button type="submit">Send Securely</button>
+    <div id="status"></div>
+  </form>
+
+  <!-- Load comms.js -->
   <script src="comms.js"></script>
 </body>
 </html>
