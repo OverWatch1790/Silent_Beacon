@@ -236,7 +236,7 @@
    * CONFIG
    **************/
   // Replace with your Cloudflare Worker HTTPS URL (must allow this origin via CORS)
-  const RELAY_URL = "https://sb-relay.your-subdomain.workers.dev";
+  const RELAY_URL = "https://sb-relay.overwatch1790.workers.dev";
 
   /**************
    * MATRIX rain
@@ -288,7 +288,7 @@
         const x = c * FS;
         const y = drops[c] * FS;
         const ch = GLYPHS.charAt((Math.random()*GLYPHS.length)|0);
-        ctx.fillText(ch, x, y);
+        ctx.fillText(c              h, x, y);
         drops[c] += speeds[c];
         if (y > H + (Math.random()*360)){
           drops[c]  = Math.floor(Math.random()*-50);
