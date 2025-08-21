@@ -6,38 +6,38 @@
   <title>Silent Beacon Communications</title>
   <link href="https://fonts.googleapis.com/css2?family=Black+Ops+One&display=swap" rel="stylesheet">
   <style>
-    :root{ --green:#00ff6a; --green-dim:#00c251; --yellow:#ffd400; --bg:#000; }
+    :root{ --orange:#FF4F00; --orange-dim:#cc3f00; --yellow:#ffd400; --bg:#000; }
     html,body{height:100%;}
-    body{ margin:0; background:var(--bg); color:var(--green); font-family:"Courier New", Courier, monospace; overflow:hidden; }
+    body{ margin:0; background:var(--bg); color:var(--orange); font-family:"Courier New", Courier, monospace; overflow:hidden; }
     #matrix{ position:fixed; inset:0; z-index:-1; }
-    .home-link{ position:fixed; top:18px; right:22px; z-index:5; color:var(--green); text-decoration:none; border:1px solid var(--green); padding:8px 12px; border-radius:6px; background:rgba(0,0,0,.35); box-shadow:0 0 8px rgba(0,255,106,.15), inset 0 0 6px rgba(0,255,106,.12);}
-    .home-link:hover{ background:var(--green); color:#000; }
+    .home-link{ position:fixed; top:18px; right:22px; z-index:5; color:var(--orange); text-decoration:none; border:1px solid var(--orange); padding:8px 12px; border-radius:6px; background:rgba(0,0,0,.35); box-shadow:0 0 8px rgba(255,79,0,.15), inset 0 0 6px rgba(255,79,0,.12);}
+    .home-link:hover{ background:var(--orange); color:#000; }
     .title-wrap{ position:fixed; top:32px; left:0; right:0; display:flex; justify-content:center; pointer-events:none; z-index:3;}
-    .title{ font-family:inherit; font-weight:400; font-size:clamp(36px, 7.5vw, 78px); letter-spacing:.12em; text-transform:uppercase; transform:scaleX(1); display:inline-block; color:var(--green); text-shadow:0 0 6px rgba(0,255,106,.15); margin:0; user-select:none; }
+    .title{ font-family:inherit; font-weight:400; font-size:clamp(36px, 7.5vw, 78px); letter-spacing:.12em; text-transform:uppercase; transform:scaleX(1); display:inline-block; color:var(--orange); text-shadow:0 0 6px rgba(255,79,0,.25); margin:0; user-select:none; }
     .title-stack{ display:flex; flex-direction:column; align-items:center; gap:6px; }
-    .brand-title{ font-family:inherit; font-weight:400; letter-spacing:.12em; text-transform:uppercase; font-size:clamp(28px,6.5vw,52px); color:var(--green); }
-    .page-title{ font-family:inherit; font-weight:400; letter-spacing:.12em; text-transform:uppercase; font-size:clamp(28px,6.5vw,52px); color:var(--green); text-shadow:0 0 6px rgba(0,255,106,.15); }
+    .brand-title{ font-family:inherit; font-weight:400; letter-spacing:.12em; text-transform:uppercase; font-size:clamp(28px,6.5vw,52px); color:var(--orange); }
+    .page-title{ font-family:inherit; font-weight:400; letter-spacing:.12em; text-transform:uppercase; font-size:clamp(28px,6.5vw,52px); color:var(--orange); text-shadow:0 0 6px rgba(255,79,0,.25); }
     .center-cta{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; z-index:2; }
-    .btn-communicate{ appearance:none; border:2px solid var(--green); background:rgba(0,255,106,.06); color:var(--green); padding:16px 28px; font-size:clamp(16px,3.5vw,22px); letter-spacing:.12em; text-transform:uppercase; cursor:pointer; box-shadow:0 0 10px rgba(0,255,106,.25), inset 0 0 6px rgba(0,255,106,.18); transition:transform .15s ease, box-shadow .2s ease, background .2s ease, color .2s ease;}
-    .btn-communicate:hover{ transform:translateY(-1px); background:rgba(0,255,106,.18); box-shadow:0 0 14px rgba(0,255,106,.38), inset 0 0 10px rgba(0,255,106,.26); }
+    .btn-communicate{ appearance:none; border:2px solid var(--orange); background:rgba(255,79,0,.06); color:var(--orange); padding:16px 28px; font-size:clamp(16px,3.5vw,22px); letter-spacing:.12em; text-transform:uppercase; cursor:pointer; box-shadow:0 0 10px rgba(255,79,0,.25), inset 0 0 6px rgba(255,79,0,.18); transition:transform .15s ease, box-shadow .2s ease, background .2s ease, color .2s ease;}
+    .btn-communicate:hover{ transform:translateY(-1px); background:rgba(255,79,0,.18); box-shadow:0 0 14px rgba(255,79,0,.38), inset 0 0 10px rgba(255,79,0,.26); }
     .comms-modal{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; padding:24px; z-index:4; }
-    .comms-card{ width:min(880px,92vw); backdrop-filter:blur(2px); background:rgba(0,0,0,.55); border:2px solid var(--green); box-shadow:0 0 14px rgba(0,255,106,.28), inset 0 0 10px rgba(0,255,106,.18); border-radius:10px; padding:20px 18px; animation:fadeIn .24s ease both; }
-    .legend{ font-size:14px; letter-spacing:.08em; color:var(--green); text-shadow:0 0 8px rgba(0,255,106,.35); margin:0 0 12px 2px; opacity:.9; }
+    .comms-card{ width:min(880px,92vw); backdrop-filter:blur(2px); background:rgba(0,0,0,.55); border:2px solid var(--orange); box-shadow:0 0 14px rgba(255,79,0,.28), inset 0 0 10px rgba(255,79,0,.18); border-radius:10px; padding:20px 18px; animation:fadeIn .24s ease both; }
+    .legend{ font-size:14px; letter-spacing:.08em; color:var(--orange); text-shadow:0 0 8px rgba(255,79,0,.35); margin:0 0 12px 2px; opacity:.9; }
     .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
     .row{ margin-top:12px; }
-    label{ display:block; font-size:12px; letter-spacing:.08em; margin:0 0 6px 2px; color:var(--green-dim); }
-    input,textarea{ width:100%; box-sizing:border-box; background:rgba(0,0,0,.55); border:1px solid var(--green-dim); color:var(--green); padding:10px 12px; font-family:inherit; outline:none; border-radius:6px; caret-color:var(--green); transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;}
-    input:focus,textarea:focus{ border-color:var(--green); box-shadow:0 0 8px rgba(0,255,106,.3); background:rgba(0,0,0,.6); }
+    label{ display:block; font-size:12px; letter-spacing:.08em; margin:0 0 6px 2px; color:var(--orange-dim); }
+    input,textarea{ width:100%; box-sizing:border-box; background:rgba(0,0,0,.55); border:1px solid var(--orange-dim); color:var(--orange); padding:10px 12px; font-family:inherit; outline:none; border-radius:6px; caret-color:var(--orange); transition:border-color .15s ease, box-shadow .15s ease, background .15s ease;}
+    input:focus,textarea:focus{ border-color:var(--orange); box-shadow:0 0 8px rgba(255,79,0,.3); background:rgba(0,0,0,.6); }
     textarea{ min-height:180px; resize:vertical; }
     .actions{ display:flex; gap:12px; align-items:center; justify-content:flex-end; margin-top:16px; }
-    .btn{ appearance:none; border:1px solid var(--green); background:transparent; color:var(--green); padding:10px 16px; font-size:14px; line-height:1; border-radius:6px; cursor:pointer; min-width:92px; text-align:center; transition:background .2s ease, color .2s ease, border-color .2s ease;}
-    .btn:hover{ background:var(--green); color:#000; border-color:var(--green);}
-    .btn:active, .btn:focus { background:var(--green); color:#000; border-color:var(--green); }
+    .btn{ appearance:none; border:1px solid var(--orange); background:transparent; color:var(--orange); padding:10px 16px; font-size:14px; line-height:1; border-radius:6px; cursor:pointer; min-width:92px; text-align:center; transition:background .2s ease, color .2s ease, border-color .2s ease;}
+    .btn:hover{ background:var(--orange); color:#000; border-color:var(--orange);}
+    .btn:active, .btn:focus { background:var(--orange); color:#000; border-color:var(--orange); }
     .btn:disabled{ opacity:.6; cursor:not-allowed;}
     .confirm{ position:fixed; inset:0; display:none; align-items:center; justify-content:center; pointer-events:none; z-index:4;}
-    .confirm-text{ font-size:clamp(20px,5vw,44px); color:var(--green); text-shadow:0 0 10px rgba(0,255,106,.55),0 0 22px rgba(0,255,106,.35),0 0 40px rgba(0,255,106,.2); letter-spacing:.06em; }
+    .confirm-text{ font-size:clamp(20px,5vw,44px); color:var(--orange); text-shadow:0 0 10px rgba(255,79,0,.55),0 0 22px rgba(255,79,0,.35),0 0 40px rgba(255,79,0,.2); letter-spacing:.06em; }
     @keyframes fadeIn{ from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none} }
-        @keyframes fadeInOut{ 
+    @keyframes fadeInOut{ 
       0%{opacity:0; transform:translateY(6px)} 
       10%{opacity:1; transform:none} 
       90%{opacity:1; transform:none} 
@@ -94,7 +94,7 @@
         <button type="reset" class="btn" id="clearBtn">Clear</button>
         <button type="submit" class="btn" id="sendBtn">Send</button>
       </div>
-      <div id="status" aria-live="polite" style="margin-top:10px; font-size:12px; color:#9ad9b7;"></div>
+      <div id="status" aria-live="polite" style="margin-top:10px; font-size:12px; color:#ffbda3;"></div>
     </form>
   </div>
 
@@ -108,36 +108,30 @@
     const form = e.currentTarget;
     const c = document.getElementById("confirm");
 
-    // Show green confirmation with your fade animation
+    // Show orange confirmation with your fade animation
     c.style.display = "flex";
     c.classList.add("show");
 
     try {
-      // Send the real form fields (includes callsign, reply, message, _gotcha)
       const fd = new FormData(form);
       const resp = await fetch(form.action, {
         method: "POST",
         body: fd,
-        headers: {
-          "Accept": "application/json"          // <-- tells Formspree: return JSON, don't redirect
-        }
+        headers: { "Accept": "application/json" }
       });
-      // You could check resp.ok here if you want, but we redirect either way
     } catch (err) {
-      // Network failure? We still finish the UX the same way.
       console.error("Submit failed:", err);
     }
 
-    // After the fade finishes, send them home
     setTimeout(() => {
       c.classList.remove("show");
       c.style.display = "none";
       window.location.href = "https://silentbeacon.neocities.org/";
-    }, 1600);                                   // matches your fadeInOut duration
+    }, 1600);
   });
   </script>
 
-  <!-- Matrix background + UI (unchanged; no custom send handler) -->
+  <!-- Matrix background + UI -->
   <script>
     (function(){
       const canvas = document.getElementById('matrix');
@@ -151,7 +145,7 @@
           dropsFront[i]=Math.floor(Math.random()*-60);speedFront[i]=(1.4+Math.random()*1.8)*SPEED;}}
       window.addEventListener('resize',resize,{passive:true});resize();
       function drawLayer(drops,speeds,alpha){ctx.globalAlpha=alpha;for(let c=0;c<COLS;c++){const x=c*FS;const y=drops[c]*FS;const ch=GLYPHS.charAt((Math.random()*GLYPHS.length)|0);ctx.fillText(ch,x,y);drops[c]+=speeds[c];if(y>H+(Math.random()*360)){drops[c]=Math.floor(Math.random()*-50);speeds[c]=(alpha<0.9?(0.6+Math.random()*1.1):(1.4+Math.random()*1.8))*SPEED;}}ctx.globalAlpha=1;}
-      function tick(){ctx.fillStyle="rgba(0,0,0,0.05)";ctx.fillRect(0,0,W,H);ctx.fillStyle="#00ff6a";drawLayer(dropsBack,speedBack,0.45);drawLayer(dropsFront,speedFront,0.95);requestAnimationFrame(tick);}requestAnimationFrame(tick);
+      function tick(){ctx.fillStyle="rgba(0,0,0,0.05)";ctx.fillRect(0,0,W,H);ctx.fillStyle="#FF4F00";drawLayer(dropsBack,speedBack,0.45);drawLayer(dropsFront,speedFront,0.95);requestAnimationFrame(tick);}requestAnimationFrame(tick);
     })();
 
     const titleWrap=document.getElementById('titleWrap');const centerCta=document.getElementById('centerCta');
@@ -166,7 +160,6 @@
     openBtn.addEventListener('click',showModal);
     cancelBtn.addEventListener('click',()=>dissolveModalThen(resetLauncher));
     clearBtn.addEventListener('click',()=>{statusEl.textContent='';});
-    /* No custom submit handler here */
   </script>
 </body>
 </html>
