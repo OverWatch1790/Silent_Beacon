@@ -152,15 +152,44 @@
       function tick(){ctx.fillStyle="rgba(0,0,0,0.05)";ctx.fillRect(0,0,W,H);ctx.fillStyle="#FF4F00";drawLayer(dropsBack,speedBack,0.45);drawLayer(dropsFront,speedFront,0.95);requestAnimationFrame(tick);}requestAnimationFrame(tick);
     })();
 
-    const titleWrap=document.getElementById('titleWrap');const centerCta=document.getElementById('centerCta');
-    const openBtn=document.getElementById('openBtn');const modal=document.getElementById('commsModal');
-    const form=document.getElementById('commsForm');const cancelBtn=document.getElementById('cancelBtn');
-    const clearBtn=document.getElementById('clearBtn');const sendBtn=document.getElementById('sendBtn');
+    const titleWrap=document.getElementById('titleWrap');
+    const centerCta=document.getElementById('centerCta');
+    const openBtn=document.getElementById('openBtn');
+    const modal=document.getElementById('commsModal');
+    const form=document.getElementById('commsForm');
+    const cancelBtn=document.getElementById('cancelBtn');
+    const clearBtn=document.getElementById('clearBtn');
+    const sendBtn=document.getElementById('sendBtn');
     const statusEl=document.getElementById('status');
-    function showModal(){titleWrap.classList.add('is-dissolving');centerCta.classList.add('is-dissolving');
-      setTimeout(()=>{titleWrap.classList.add('hidden');centerCta.classList.add('hidden');modal.style.display='flex';},560);}
-    function dissolveModalThen(cb){form.classList.add('is-dissolving');setTimeout(()=>{modal.style.display='none';form.classList.remove('is-dissolving');if(typeof cb==='function')cb();},560);}
-    function resetLauncher(){titleWrap.classList.remove('hidden','is-dissolving');centerCta.classList.remove('hidden','is-dissolving');}
+    const homeLink=document.querySelector('.home-link'); // 👈 added
+
+    function showModal(){
+      titleWrap.classList.add('is-dissolving');
+      centerCta.classList.add('is-dissolving');
+      homeLink.classList.add('is-dissolving'); // 👈 added
+      setTimeout(()=>{
+        titleWrap.classList.add('hidden');
+        centerCta.classList.add('hidden');
+        homeLink.classList.add('hidden'); // 👈 added
+        modal.style.display='flex';
+      },560);
+    }
+
+    function dissolveModalThen(cb){
+      form.classList.add('is-dissolving');
+      setTimeout(()=>{
+        modal.style.display='none';
+        form.classList.remove('is-dissolving');
+        if(typeof cb==='function')cb();
+      },560);
+    }
+
+    function resetLauncher(){
+      titleWrap.classList.remove('hidden','is-dissolving');
+      centerCta.classList.remove('hidden','is-dissolving');
+      homeLink.classList.remove('hidden','is-dissolving'); // 👈 added
+    }
+
     openBtn.addEventListener('click',showModal);
     cancelBtn.addEventListener('click',()=>dissolveModalThen(resetLauncher));
     clearBtn.addEventListener('click',()=>{statusEl.textContent='';});
