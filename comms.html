@@ -161,16 +161,16 @@
     const clearBtn=document.getElementById('clearBtn');
     const sendBtn=document.getElementById('sendBtn');
     const statusEl=document.getElementById('status');
-    const homeLink=document.querySelector('.home-link'); // 👈 added
+    const homeLink=document.querySelector('.home-link'); //
 
     function showModal(){
       titleWrap.classList.add('is-dissolving');
       centerCta.classList.add('is-dissolving');
-      homeLink.classList.add('is-dissolving'); // 👈 added
+      homeLink.classList.add('is-dissolving'); //
       setTimeout(()=>{
         titleWrap.classList.add('hidden');
         centerCta.classList.add('hidden');
-        homeLink.classList.add('hidden'); // 👈 added
+        homeLink.classList.add('hidden'); //
         modal.style.display='flex';
       },560);
     }
@@ -187,7 +187,7 @@
     function resetLauncher(){
       titleWrap.classList.remove('hidden','is-dissolving');
       centerCta.classList.remove('hidden','is-dissolving');
-      homeLink.classList.remove('hidden','is-dissolving'); // 👈 added
+      homeLink.classList.remove('hidden','is-dissolving'); //
     }
 
     openBtn.addEventListener('click',showModal);
