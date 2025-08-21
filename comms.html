@@ -102,13 +102,39 @@
 
   <!-- Submit overlay (no preventDefault) -->
   <script>
-        document.getElementById("commsForm").addEventListener("submit", () => {
-      const c = document.getElementById("confirm");
-      c.style.display = "flex";
-      c.classList.add("show");
-      setTimeout(()=>{ c.classList.remove("show"); c.style.display = "none"; }, 1600);
-    });
+   document.getElementById("commsForm").addEventListener("submit", async (e) => {
+    e.preventDefault();                         // stop the browser's default redirect
 
+    const form = e.currentTarget;
+    const c = document.getElementById("confirm");
+
+    // Show green confirmation with your fade animation
+    c.style.display = "flex";
+    c.classList.add("show");
+
+    try {
+      // Send the real form fields (includes callsign, reply, message, _gotcha)
+      const fd = new FormData(form);
+      const resp = await fetch(form.action, {
+        method: "POST",
+        body: fd,
+        headers: {
+          "Accept": "application/json"          // <-- tells Formspree: return JSON, don't redirect
+        }
+      });
+      // You could check resp.ok here if you want, but we redirect either way
+    } catch (err) {
+      // Network failure? We still finish the UX the same way.
+      console.error("Submit failed:", err);
+    }
+
+    // After the fade finishes, send them home
+    setTimeout(() => {
+      c.classList.remove("show");
+      c.style.display = "none";
+      window.location.href = "https://silentbeacon.neocities.org/";
+    }, 1600);                                   // matches your fadeInOut duration
+  });
   </script>
 
   <!-- Matrix background + UI (unchanged; no custom send handler) -->
