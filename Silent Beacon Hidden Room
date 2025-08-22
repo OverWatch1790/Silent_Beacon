@@ -1,0 +1,419 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Silent Beacon // Special Agents Room (Mockup)</title>
+  <meta name="description" content="Mission-Impossible / Matrix-inspired secure room mockup for Silent Beacon. Front-end only." />
+  <style>
+    :root{
+      --sb-bg:#07090b;                 /* deep black-blue */
+      --sb-panel:#0f1115;              /* panel bg */
+      --sb-panel-2:#0c0f12;            /* darker panel */
+      --sb-text:#d7e1e8;               /* light text */
+      --sb-muted:#7c8a96;              /* muted */
+      --sb-primary:#FF4F00;            /* International Orange */
+      --sb-green:#00e676;              /* tactical green accent */
+      --sb-line:#13171c;               /* grid lines */
+      --sb-shadow:0 0 0 1px rgba(255,79,0,.25) inset, 0 0 20px rgba(255,79,0,.18);
+    }
+
+    /* --- Base --- */
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; background:var(--sb-bg); color:var(--sb-text); font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Arial,Ubuntu,Cantarell,Noto Sans,"Helvetica Neue",sans-serif;
+      letter-spacing:.2px;
+    }
+    a{color:var(--sb-primary); text-decoration:none}
+
+    /* Subtle scanlines + grid for the vibe */
+    body::before{
+      content:""; position:fixed; inset:0; pointer-events:none; opacity:.08;
+      background:
+        repeating-linear-gradient(0deg, transparent 0 2px, #000 2px 3px),
+        linear-gradient(180deg, rgba(255,79,0,.06), transparent 40%, transparent 60%, rgba(0,230,118,.05));
+      mix-blend-mode:screen;
+    }
+    body::after{ /* grid */
+      content:""; position:fixed; inset:0; pointer-events:none; opacity:.12;
+      background-image: linear-gradient(var(--sb-line) 1px, transparent 1px), linear-gradient(90deg, var(--sb-line) 1px, transparent 1px);
+      background-size: 40px 40px, 40px 40px; 
+    }
+
+    /* --- HUD Top Bar --- */
+    .hud{
+      position:sticky; top:0; z-index:10; backdrop-filter: blur(6px);
+      background:linear-gradient(180deg, rgba(10,12,16,.85), rgba(10,12,16,.65));
+      border-bottom:1px solid rgba(255,79,0,.25);
+      box-shadow:0 10px 40px rgba(0,0,0,.35);
+    }
+    .hud-inner{display:flex; align-items:center; gap:16px; padding:14px 18px;}
+    .brand{display:flex; align-items:center; gap:12px; font-weight:700; letter-spacing:.8px}
+    .brand .glyph{width:26px; height:26px; border-radius:6px; border:1px solid rgba(255,79,0,.45); box-shadow:var(--sb-shadow); display:grid; place-items:center}
+    .brand .glyph svg{width:18px; height:18px; fill:var(--sb-primary)}
+    .brand .title{color:#fff}
+    .hud-spacer{flex:1}
+    .clock{font-variant-numeric:tabular-nums; display:flex; align-items:center; gap:12px}
+    .clock .dot{width:6px; height:6px; border-radius:50%; background:var(--sb-primary); box-shadow:0 0 12px rgba(255,79,0,.75)}
+    .hud-pills{display:flex; gap:8px}
+    .pill{border:1px solid rgba(255,79,0,.35); padding:6px 10px; border-radius:999px; font-size:.82rem; opacity:.9}
+
+    /* --- Layout --- */
+    .wrap{display:grid; grid-template-columns: 260px 1fr 320px; gap:14px; padding:16px; max-width:1500px; margin:0 auto}
+
+    .panel{background:var(--sb-panel); border:1px solid rgba(255,79,0,.22); border-radius:14px; box-shadow:var(--sb-shadow)}
+    .panel h3{margin:0; padding:12px 14px; border-bottom:1px solid rgba(255,79,0,.15); color:#fff; letter-spacing:.4px}
+
+    /* Left: Rooms */
+    .rooms{display:flex; flex-direction:column; overflow:hidden}
+    .rooms-list{padding:8px; overflow:auto; max-height:calc(100vh - 160px)}
+    .room{display:flex; align-items:center; gap:10px; padding:10px 10px; border-radius:10px; cursor:pointer; border:1px solid transparent}
+    .room:hover{background:var(--sb-panel-2); border-color:rgba(255,79,0,.2)}
+    .room.active{background:linear-gradient(180deg, rgba(255,79,0,.12), rgba(255,79,0,.06)); border-color:rgba(255,79,0,.4)}
+    .room .badge{font-size:.75rem; color:var(--sb-muted)}
+
+    .room .led{width:8px; height:8px; border-radius:50%; box-shadow:0 0 10px rgba(0,230,118,.85); background:var(--sb-green)}
+    .room .led.idle{background:#445; box-shadow:none}
+
+    .rooms .create{display:flex; gap:8px; padding:10px; border-top:1px dashed rgba(255,79,0,.25)}
+    .rooms input{flex:1; background:#0a0c10; color:var(--sb-text); border:1px solid rgba(255,79,0,.25); border-radius:10px; padding:8px 10px}
+    .btn{background:var(--sb-primary); color:#0b0c0e; border:none; border-radius:10px; padding:10px 12px; font-weight:700; cursor:pointer}
+    .btn.ghost{background:transparent; color:var(--sb-text); border:1px solid rgba(255,79,0,.35)}
+
+    /* Center: Chat / Mail Tabs */
+    .center{display:flex; flex-direction:column; min-height:72vh}
+    .tabs{display:flex; gap:8px; padding:10px; border-bottom:1px solid rgba(255,79,0,.2)}
+    .tab{padding:8px 12px; border-radius:999px; border:1px solid rgba(255,79,0,.25); cursor:pointer}
+    .tab.active{background:linear-gradient(180deg, rgba(255,79,0,.15), rgba(255,79,0,.08));}
+
+    .chat-area{display:flex; flex-direction:column; gap:0; height:65vh}
+    .msgs{flex:1; overflow:auto; padding:14px; display:flex; flex-direction:column; gap:12px}
+    .msg{display:flex; gap:10px; align-items:flex-start}
+    .avatar{width:28px; height:28px; border-radius:8px; border:1px solid rgba(255,79,0,.35); box-shadow:var(--sb-shadow); display:grid; place-items:center; font-size:.8rem; color:#fff}
+    .bubble{background: #0b0e12; border:1px solid rgba(255,79,0,.25); padding:10px 12px; border-radius:12px; max-width:80%}
+    .meta{font-size:.75rem; color:var(--sb-muted); margin-bottom:6px}
+
+    .composer{border-top:1px solid rgba(255,79,0,.2); padding:10px; display:flex; gap:8px}
+    .composer input[type="text"], .composer textarea{flex:1; background:#0a0c10; color:var(--sb-text); border:1px solid rgba(255,79,0,.25); border-radius:10px; padding:10px}
+    .composer textarea{min-height:80px; resize:vertical}
+
+    /* Mail panel */
+    .mail{display:none; flex-direction:column; height:65vh}
+    .mail .grid{display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:14px}
+    .field{display:flex; flex-direction:column; gap:6px}
+    .field label{font-size:.85rem; color:var(--sb-muted)}
+    .field input,.field textarea{background:#0a0c10; color:var(--sb-text); border:1px solid rgba(255,79,0,.25); border-radius:10px; padding:10px}
+    .field textarea{min-height:180px}
+    .mail .actions{margin:10px 14px 14px; display:flex; gap:10px}
+
+    /* Right: Side tools */
+    .side{display:flex; flex-direction:column; gap:14px}
+    .card{background:var(--sb-panel-2); border-top:1px solid rgba(255,79,0,.22); border-radius:12px; padding:12px; box-shadow:var(--sb-shadow)}
+    .card h4{margin:0 0 8px 0}
+
+    .agents{display:flex; flex-direction:column; gap:8px; max-height:200px; overflow:auto}
+    .agent{display:flex; align-items:center; gap:10px; font-size:.95rem}
+    .agent .dot{width:8px; height:8px; border-radius:50%; background:var(--sb-green); box-shadow:0 0 10px rgba(0,230,118,.75)}
+
+    .codename-bank{display:flex; flex-direction:column; gap:10px}
+    .bank{max-height:180px; overflow:auto; display:flex; flex-direction:column; gap:8px}
+    .tag{display:inline-flex; gap:8px; align-items:center; border:1px solid rgba(255,79,0,.35); border-radius:999px; padding:6px 10px}
+
+    .statusbar{display:flex; gap:10px; align-items:center; padding:10px 14px; border-top:1px dashed rgba(255,79,0,.25); color:var(--sb-muted)}
+    .statusbar .pulse{width:10px; height:10px; border-radius:50%; background:var(--sb-primary); box-shadow:0 0 12px rgba(255,79,0,.8); animation:pulse 2s infinite}
+    @keyframes pulse{0%{transform:scale(.9)}50%{transform:scale(1.15)}100%{transform:scale(.9)}}
+
+    /* Responsive */
+    @media (max-width: 1100px){
+      .wrap{grid-template-columns:220px 1fr}
+      .side{grid-column:1 / -1; grid-row:auto}
+    }
+    @media (max-width: 780px){
+      .wrap{grid-template-columns:1fr}
+      .rooms{order:2}
+      .side{order:3}
+    }
+  </style>
+</head>
+<body>
+  <!-- HUD -->
+  <header class="hud" role="banner" aria-label="Silent Beacon HUD">
+    <div class="hud-inner">
+      <div class="brand" aria-label="brand">
+        <div class="glyph" aria-hidden="true">
+          <!-- lock/target glyph -->
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 1 7 7v2h1a2 2 0 1 1 0 4h-1v2a7 7 0 0 1-7 7 7 7 0 0 1-7-7v-2H4a2 2 0 1 1 0-4h1V9a7 7 0 0 1 7-7Zm0 2a5 5 0 0 0-5 5v2h10V9a5 5 0 0 0-5-5Z"/></svg>
+        </div>
+        <div class="title">SILENT BEACON // SPECIAL ACCESS</div>
+      </div>
+      <div class="hud-spacer"></div>
+      <div class="clock" aria-live="polite">
+        <span id="localTime">--:--</span>
+        <span class="dot"></span>
+        <span id="utcTime">UTC --:--</span>
+      </div>
+      <div class="hud-pills">
+        <div class="pill">Status: <strong>STANDBY</strong></div>
+        <div class="pill">Ruleset: <strong>ROE-ALPHA</strong></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap" role="main">
+    <!-- LEFT: Rooms -->
+    <aside class="panel rooms" aria-label="rooms list">
+      <h3>Rooms</h3>
+      <div class="rooms-list" id="rooms">
+        <!-- rooms injected by JS -->
+      </div>
+      <div class="create" aria-label="create room">
+        <input id="newRoom" placeholder="Create room (mock)" />
+        <button class="btn ghost" id="addRoom">Add</button>
+      </div>
+      <div class="statusbar">
+        <div class="pulse" aria-hidden="true"></div>
+        <span>Carrier link nominal • AES-256 (visual only)</span>
+      </div>
+    </aside>
+
+    <!-- CENTER: Chat / Mail -->
+    <section class="panel center" aria-label="interaction center">
+      <div class="tabs" role="tablist">
+        <button class="tab active" role="tab" aria-selected="true" id="tabChat">Chat</button>
+        <button class="tab" role="tab" aria-selected="false" id="tabMail">Secure Mail</button>
+      </div>
+
+      <!-- Chat -->
+      <div class="chat-area" id="panelChat" role="tabpanel" aria-labelledby="tabChat">
+        <div class="msgs" id="msgList" aria-live="polite"></div>
+        <form class="composer" id="composer" autocomplete="off">
+          <input id="msgInput" type="text" placeholder="Type message… (front‑end demo)" aria-label="message" />
+          <button class="btn" type="submit">Send</button>
+        </form>
+      </div>
+
+      <!-- Mail -->
+      <div class="mail" id="panelMail" role="tabpanel" aria-labelledby="tabMail">
+        <div class="grid">
+          <div class="field"><label for="to">To</label><input id="to" placeholder="agent@domain.tld (mock)" /></div>
+          <div class="field"><label for="cc">Cc</label><input id="cc" placeholder="optional" /></div>
+          <div class="field" style="grid-column:1/-1">
+            <label for="subject">Subject</label>
+            <input id="subject" placeholder="Mission subject" />
+          </div>
+          <div class="field" style="grid-column:1/-1">
+            <label for="body">Message</label>
+            <textarea id="body" placeholder="Draft your message (no backend yet)"></textarea>
+          </div>
+        </div>
+        <div class="actions">
+          <label class="btn ghost" for="attach">Attach<input id="attach" type="file" style="display:none"></label>
+          <button class="btn" id="encryptQueue" type="button">Encrypt & Queue</button>
+          <button class="btn ghost" id="saveDraft" type="button">Save Draft</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: Side tools -->
+    <aside class="side" aria-label="side tools">
+      <section class="card">
+        <h4>Agents Online</h4>
+        <div class="agents" id="agents"></div>
+      </section>
+
+      <section class="card codename-bank">
+        <h4>Codename Bank</h4>
+        <div style="display:flex; gap:8px">
+          <input id="codenameInput" placeholder="Generate or type…" style="flex:1; background:#0a0c10; color:var(--sb-text); border:1px solid rgba(255,79,0,.35); border-radius:10px; padding:8px 10px" />
+          <button class="btn" id="genCodename" title="Generate">Generate</button>
+        </div>
+        <div class="bank" id="bank"></div>
+      </section>
+
+      <section class="card">
+        <h4>Quick Actions</h4>
+        <div style="display:flex; flex-wrap:wrap; gap:8px">
+          <button class="btn ghost" id="pingAll">Ping All</button>
+          <button class="btn ghost" id="redFlag">Raise RED FLAG</button>
+          <button class="btn ghost" id="clearChat">Clear Chat (mock)</button>
+        </div>
+      </section>
+    </aside>
+  </main>
+
+  <script>
+    // ====== LIVE CLOCK ======
+    const localEl = document.getElementById('localTime');
+    const utcEl   = document.getElementById('utcTime');
+    function pad(n){return n.toString().padStart(2,'0')}    
+    function fmt(d){
+      const y=d.getFullYear(); const m=d.toLocaleString(undefined,{month:'short'}); const day=pad(d.getDate());
+      const hh=pad(d.getHours()); const mm=pad(d.getMinutes()); const ss=pad(d.getSeconds());
+      const tz=d.toTimeString().match(/\(([^)]+)\)/); // e.g., EDT
+      return `${m} ${day}, ${y} ${hh}:${mm}:${ss} ${tz?tz[1]:''}`
+    }
+    function tick(){
+      const now=new Date();
+      localEl.textContent = fmt(now);
+      const utc = new Date(now.getTime()+now.getTimezoneOffset()*-60000); // display label UTC
+      const uhh=pad(utc.getUTCHours()), umm=pad(utc.getUTCMinutes()), uss=pad(utc.getUTCSeconds());
+      utcEl.textContent = `UTC ${uhh}:${umm}:${uss}`;
+      requestAnimationFrame(()=>setTimeout(tick, 250));
+    }
+    tick();
+
+    // ====== ROOMS & MESSAGES (MOCK) ======
+    const defaultRooms = [
+      {id:'briefing', name:'Briefing Room', hot:true},
+      {id:'ops', name:'Ops Channel', hot:true},
+      {id:'intel', name:'Intel Drops', hot:false},
+      {id:'log', name:'Logistics', hot:false},
+      {id:'forensics', name:'Digital Forensics', hot:false},
+      {id:'admin', name:'Admin & Policy', hot:false}
+    ];
+    const roomsEl = document.getElementById('rooms');
+    let activeRoom = 'briefing';
+
+    function renderRooms(){
+      roomsEl.innerHTML='';
+      for(const r of defaultRooms){
+        const div=document.createElement('div');
+        div.className='room' + (r.id===activeRoom?' active':'');
+        div.innerHTML = `<div class="led ${r.hot?'':'idle'}"></div><div style="display:flex; flex-direction:column"><strong>${r.name}</strong><span class="badge">#${r.id}</span></div>`;
+        div.onclick=()=>{activeRoom=r.id; renderRooms(); loadMessages();};
+        roomsEl.appendChild(div);
+      }
+    }
+    renderRooms();
+
+    // Seed messages per room (demo)
+    const seed = {
+      briefing:[
+        {who:'ECHO', text:'Welcome to the Special Access room. This is a front-end mockup only.'},
+        {who:'VECTOR', text:'Copy that. ROE-ALPHA loaded. Awaiting tasking.'},
+      ],
+      ops:[
+        {who:'SABLE', text:'Route recon complete. Two entry points, both camera blindspots for 30s.'}
+      ],
+      intel:[
+        {who:'LYNX', text:'Packet capture suggests C2 beacon every 90s to 185.77.21.12.'}
+      ],
+      log:[
+        {who:'QUARRY', text:'Requested additional plates and low-vis badges. ETA 48h.'}
+      ],
+      forensics:[
+        {who:'CIPHER', text:'Disk image verified (SHA-256). No integrity drift.'}
+      ],
+      admin:[
+        {who:'SCRIBE', text:'New SOP draft uploaded. Review before 1800Z.'}
+      ]
+    }
+
+    const msgList = document.getElementById('msgList');
+    function renderMsg({who, text}){
+      const wrap=document.createElement('div'); wrap.className='msg';
+      const av=document.createElement('div'); av.className='avatar'; av.textContent = who[0];
+      const bubble=document.createElement('div'); bubble.className='bubble';
+      const meta=document.createElement('div'); meta.className='meta'; meta.textContent = who + ' • ' + new Date().toLocaleTimeString();
+      const body=document.createElement('div'); body.textContent=text;
+      bubble.appendChild(meta); bubble.appendChild(body);
+      wrap.appendChild(av); wrap.appendChild(bubble);
+      return wrap;
+    }
+    function loadMessages(){
+      msgList.innerHTML='';
+      const arr=seed[activeRoom]||[];
+      for(const m of arr){ msgList.appendChild(renderMsg(m)); }
+      msgList.scrollTop = msgList.scrollHeight;
+    }
+    loadMessages();
+
+    // Send (mock)
+    document.getElementById('composer').addEventListener('submit', e=>{
+      e.preventDefault();
+      const input=document.getElementById('msgInput');
+      const val=input.value.trim(); if(!val) return;
+      const m={who:'YOU', text:val};
+      seed[activeRoom] = seed[activeRoom]||[]; seed[activeRoom].push(m);
+      msgList.appendChild(renderMsg(m)); input.value=''; msgList.scrollTop=msgList.scrollHeight;
+    });
+
+    // Add room (visual)
+    document.getElementById('addRoom').onclick=()=>{
+      const v=document.getElementById('newRoom').value.trim();
+      if(!v) return; const id=v.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+      defaultRooms.push({id, name:v, hot:false});
+      renderRooms(); document.getElementById('newRoom').value='';
+    }
+
+    // ====== TABS ======
+    const tabChat=document.getElementById('tabChat');
+    const tabMail=document.getElementById('tabMail');
+    const panelChat=document.getElementById('panelChat');
+    const panelMail=document.getElementById('panelMail');
+    function setTab(which){
+      const chatActive = which==='chat';
+      tabChat.classList.toggle('active', chatActive); tabChat.setAttribute('aria-selected', chatActive);
+      tabMail.classList.toggle('active', !chatActive); tabMail.setAttribute('aria-selected', !chatActive);
+      panelChat.style.display = chatActive? 'flex':'none';
+      panelMail.style.display = chatActive? 'none':'flex';
+    }
+    tabChat.onclick=()=>setTab('chat');
+    tabMail.onclick=()=>setTab('mail');
+
+    // ====== AGENTS ONLINE (mock) ======
+    const agentsEl=document.getElementById('agents');
+    const baseCodenames=["ECHO","VECTOR","SABLE","LYNX","QUARRY","CIPHER","SCRIBE","GHOST","EMBER","NOMAD","HAVOC","ORACLE"];
+    function renderAgents(){
+      agentsEl.innerHTML='';
+      for(const n of baseCodenames.slice(0,7)){
+        const row=document.createElement('div'); row.className='agent';
+        row.innerHTML = `<span class="dot"></span><span>${n}</span>`;
+        agentsEl.appendChild(row);
+      }
+    }
+    renderAgents();
+
+    // ====== CODENAME BANK ======
+    const adj=["Silent","Crimson","Iron","Phantom","Arctic","Sable","Neon","Quantum","Obsidian","Echo","Viper","Shadow","Nomad","Vector","Static","Delta","Raven","Ghost","Amber","Cipher"]; 
+    const noun=["Beacon","Mirage","Fox","Cinder","Specter","Hammer","Strike","Horizon","Quill","Torrent","Basilisk","Circuit","Nomad","Signal","Aegis","Nyx","Paradox","Spartan","Ward","Halo"];
+
+    const bank=document.getElementById('bank');
+    function gen(){
+      const a=adj[Math.floor(Math.random()*adj.length)];
+      const b=noun[Math.floor(Math.random()*noun.length)];
+      return `${a} ${b}`;
+    }
+    function addTag(text){
+      const t=document.createElement('span'); t.className='tag';
+      t.innerHTML = `<span>${text}</span> <button class="btn ghost" style="padding:4px 8px">Copy</button>`;
+      t.querySelector('button').onclick=()=>navigator.clipboard.writeText(text);
+      bank.prepend(t);
+    }
+    document.getElementById('genCodename').onclick=()=>{
+      const c=gen(); document.getElementById('codenameInput').value=c; addTag(c);
+    }
+
+    // ====== QUICK ACTIONS ======
+    document.getElementById('pingAll').onclick=()=>{
+      seed[activeRoom]=seed[activeRoom]||[]; seed[activeRoom].push({who:'SYSTEM', text:'Ping sent to all agents (visual only).'}); loadMessages();
+    }
+    document.getElementById('redFlag').onclick=()=>{
+      seed[activeRoom]=seed[activeRoom]||[]; seed[activeRoom].push({who:'ALERT', text:'RED FLAG raised. ROE shifted to BRAVO. (mock)'}); loadMessages();
+    }
+    document.getElementById('clearChat').onclick=()=>{
+      seed[activeRoom]=[]; loadMessages();
+    }
+
+    // ====== MAIL ACTIONS (mock) ======
+    function toast(msg){
+      const t=document.createElement('div');
+      t.textContent=msg; t.style.position='fixed'; t.style.right='18px'; t.style.bottom='18px'; t.style.padding='10px 14px'; t.style.border='1px solid rgba(255,79,0,.4)'; t.style.background='#0c0f12'; t.style.borderRadius='10px'; t.style.boxShadow='var(--sb-shadow)';
+      document.body.appendChild(t); setTimeout(()=>t.remove(), 2200);
+    }
+    document.getElementById('encryptQueue').onclick=()=>toast('Message encrypted & queued (demo).');
+    document.getElementById('saveDraft').onclick=()=>toast('Draft saved locally (demo).');
+  </script>
+</body>
+</html>
